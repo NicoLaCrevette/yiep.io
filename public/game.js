@@ -32,7 +32,7 @@ function create() {
     // Création du joueur
     player = this.physics.add.image(MAP_WIDTH / 2, MAP_HEIGHT / 2, "player")
         .setScale(0.3)
-        .setSize(50, 50) // 🔹 Réduction de la hitbox
+        .setSize(50, 50) // 🔹 Réduction de la hitbox du joueur
         .setCollideWorldBounds(true);
 
     // Définir la caméra qui suit le joueur
@@ -55,8 +55,8 @@ function create() {
         console.log(`💰 Pièce générée à : (${x}, ${y})`);
 
         let coin = this.physics.add.image(x, y, "coin")
-            .setScale(2)  // Taille normale de l'affichage
-            .setSize(20, 20) // 🔹 Réduction de la hitbox des pièces
+            .setScale(0.5)  // 🔹 Taille réduite des pièces
+            .setSize(10, 10) // 🔹 Réduction de la hitbox des pièces
             .setDepth(100)
             .setTint(0xffff00); // Couleur jaune pour mieux voir
         coins.push(coin);
