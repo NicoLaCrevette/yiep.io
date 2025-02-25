@@ -46,10 +46,13 @@ function create() {
 
     // Générer plusieurs pièces aléatoirement sur toute la map
     for (let i = 0; i < COIN_COUNT; i++) {
-        let coin = this.physics.add.image(randomPosition(MAP_WIDTH), randomPosition(MAP_HEIGHT), "coin").setScale(0.5);
-        coins.push(coin);
-        this.physics.add.overlap(player, coin, collectCoin, null, this);
-    }
+    let coin = this.physics.add.image(randomPosition(MAP_WIDTH), randomPosition(MAP_HEIGHT), "coin")
+        .setScale(1.5)  // 🔹 Agrandir la pièce
+        .setDepth(10);   // 🔹 Mettre la pièce au-dessus
+    console.log(`💰 Pièce générée à : (${coin.x}, ${coin.y})`);
+    coins.push(coin);
+    this.physics.add.overlap(player, coin, collectCoin, null, this);
+}
 
     // Écouter les mises à jour des joueurs
     socket.on("updatePlayers", (data) => {
