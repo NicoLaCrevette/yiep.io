@@ -1,15 +1,17 @@
 const socket = io("https://yiep-server.up.railway.app"); // Vérifie que c'est bien ton URL
 
-let players = {}; // Stocke tous les joueurs connectés
+let players = {}; 
 let player;
 let cursors;
-let score = 0;
+let score = 10; // Début avec 10 pièces
 let scoreText;
 let coins = [];
+let isDashing = false;
+let dashCooldown = false;
 
-const MAP_WIDTH = 20000;  // Taille de la carte
+const MAP_WIDTH = 20000;  
 const MAP_HEIGHT = 20000; 
-const COIN_COUNT = 50;    // Nombre de pièces
+const COIN_COUNT = 50;    
 
 const config = {
     type: Phaser.AUTO,
@@ -29,36 +31,31 @@ function preload() {
 }
 
 function create() {
-    // Création du joueur
     player = this.physics.add.image(MAP_WIDTH / 2, MAP_HEIGHT / 2, "player")
-        .setScale(0.3)
-        .setSize(125, 125) // 🔹 Réduction de la hitbox du joueur
+        .setScale(0.07)
+        .setSize(150, 150) 
         .setCollideWorldBounds(true);
 
-    // Définir la caméra qui suit le joueur
     this.cameras.main.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
     this.physics.world.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
     this.cameras.main.startFollow(player, true, 0.1, 0.1);
 
     cursors = this.input.keyboard.createCursorKeys();
+    this.input.keyboard.on("keydown-E", dash);
 
-    // Score en haut de l'écran
-    scoreText = this.add.text(10, 10, "Score: 0", { fontSize: "20px", fill: "#fff" }).setScrollFactor(0);
+    scoreText = this.add.text(10, 10, "Score: " + score, { fontSize: "20px", fill: "#fff" }).setScrollFactor(0);
 
     console.log(`🚀 Joueur généré à : (${player.x}, ${player.y})`);
 
-    // Générer plusieurs pièces
     for (let i = 0; i < COIN_COUNT; i++) {
         let x = randomPosition(MAP_WIDTH / 2) + MAP_WIDTH / 4;
         let y = randomPosition(MAP_HEIGHT / 2) + MAP_HEIGHT / 4;
 
-        console.log(`💰 Pièce générée à : (${x}, ${y})`);
-
         let coin = this.physics.add.image(x, y, "coin")
-            .setScale(0.07)  // 🔹 Taille réduite des pièces (4x plus petites)
-            .setSize(10, 10) // 🔹 Hitbox reste identique
+            .setScale(0.07)  
+            .setSize(10, 10) 
             .setDepth(100)
-            .setTint(0xffff00); // Couleur jaune pour mieux voir
+            .setTint(0xffff00);
         coins.push(coin);
         this.physics.add.overlap(player, coin, collectCoin, null, this);
     }
@@ -66,28 +63,63 @@ function create() {
     socket.on("updatePlayers", (data) => {
         players = data;
     });
+
+    socket.on("playerHit", (attackerId) => {
+        if (socket.id === attackerId) {
+            score += 3;
+            scoreText.setText("Score: " + score);
+        } else {
+            score = Math.max(0, score - 3);
+            scoreText.setText("Score: " + score);
+            if (score === 0) {
+                eliminatePlayer();
+            }
+        }
+    });
 }
 
 function update() {
-    let speed = 7; // Vitesse du joueur
+    let speed = isDashing ? 15 : 7;
 
     if (cursors.left.isDown) player.x -= speed;
     if (cursors.right.isDown) player.x += speed;
     if (cursors.up.isDown) player.y -= speed;
     if (cursors.down.isDown) player.y += speed;
 
-    // Envoyer la position du joueur au serveur
     socket.emit("move", { x: player.x, y: player.y });
 }
 
-// Fonction pour récupérer une pièce
+// 🎯 Fonction pour faire un dash
+function dash() {
+    if (dashCooldown) return;
+
+    isDashing = true;
+    dashCooldown = true;
+    setTimeout(() => {
+        isDashing = false;
+    }, 500);
+
+    setTimeout(() => {
+        dashCooldown = false;
+    }, 2000);
+}
+
+// 🎯 Fonction pour récupérer une pièce
 function collectCoin(player, coin) {
     score += 1;
     scoreText.setText("Score: " + score);
-    coin.setPosition(randomPosition(MAP_WIDTH / 2) + MAP_WIDTH / 4, randomPosition(MAP_HEIGHT / 2) + MAP_HEIGHT / 4); // Nouvelle position aléatoire
+    coin.setPosition(randomPosition(MAP_WIDTH / 2) + MAP_WIDTH / 4, randomPosition(MAP_HEIGHT / 2) + MAP_HEIGHT / 4);
 }
 
-// Fonction pour générer une position aléatoire
+// 🎯 Fonction pour gérer l'élimination et réinitialisation du joueur
+function eliminatePlayer() {
+    alert("💀 Tu as perdu toutes tes pièces ! Recommence !");
+    score = 10; 
+    scoreText.setText("Score: " + score);
+    player.setPosition(MAP_WIDTH / 2, MAP_HEIGHT / 2);
+}
+
+// 🎯 Fonction pour générer une position aléatoire
 function randomPosition(max) {
     return Math.floor(Math.random() * max);
 }

@@ -24,16 +24,49 @@ let players = {};
 io.on("connection", (socket) => {
     console.log(`✅ Nouvelle connexion : ${socket.id}`);
 
-    players[socket.id] = { x: Math.random() * 800, y: Math.random() * 600 };
+    // Initialisation du joueur avec 10 pièces
+    players[socket.id] = { 
+        x: Math.random() * 800, 
+        y: Math.random() * 600,
+        score: 10 // Départ avec 10 pièces
+    };
     io.emit("updatePlayers", players);
 
+    // Mise à jour de la position d'un joueur
     socket.on("move", (data) => {
         if (players[socket.id]) {
-            players[socket.id] = data;
+            players[socket.id].x = data.x;
+            players[socket.id].y = data.y;
             io.emit("updatePlayers", players);
         }
     });
 
+    // Gestion des attaques avec le dash
+    socket.on("dashHit", (targetId) => {
+        if (players[targetId] && players[socket.id]) {
+            let attacker = players[socket.id];
+            let target = players[targetId];
+
+            if (target.score > 0) {
+                target.score = Math.max(0, target.score - 3); // Perd 3 pièces
+                attacker.score += 3; // Gagne 3 pièces
+
+                io.to(targetId).emit("playerHit", socket.id);
+                io.to(socket.id).emit("playerHit", socket.id);
+
+                console.log(`⚔️ ${socket.id} a volé 3 pièces à ${targetId}`);
+
+                // Vérifie si la cible est éliminée
+                if (target.score === 0) {
+                    io.to(targetId).emit("eliminated");
+                    console.log(`💀 ${targetId} est éliminé et recommence.`);
+                    target.score = 10; // Réinitialisation
+                }
+            }
+        }
+    });
+
+    // Déconnexion d'un joueur
     socket.on("disconnect", () => {
         delete players[socket.id];
         io.emit("updatePlayers", players);
