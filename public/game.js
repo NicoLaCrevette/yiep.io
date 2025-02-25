@@ -11,11 +11,11 @@ let pseudoText;
 let coins = [];
 let isDashing = false;
 let dashCooldown = false;
+let leaderboardText;
 
 const MAP_WIDTH = 20000;  
 const MAP_HEIGHT = 20000; 
 const COIN_COUNT = 50;    
-let leaderboardText; // ✅ Ajout de la variable pour le classement
 
 const config = {
     type: Phaser.AUTO,
@@ -40,7 +40,7 @@ function create() {
         .setSize(150, 150) 
         .setCollideWorldBounds(true);
 
-    // ✅ Ajouter le pseudo au-dessus du joueur
+    // ✅ Ajout du pseudo au-dessus du joueur
     player.pseudoText = this.add.text(player.x, player.y - 50, pseudo, {
         fontSize: "16px",
         fill: "#fff",
@@ -56,7 +56,7 @@ function create() {
 
     scoreText = this.add.text(10, 10, "Score: " + score, { fontSize: "20px", fill: "#fff" }).setScrollFactor(0);
 
-    // ✅ Affichage du classement à droite de l'écran
+    // ✅ Classement affiché à droite
     leaderboardText = this.add.text(600, 10, "🏆 Classement 🏆", {
         fontSize: "18px",
         fill: "#ffcc00"
@@ -89,6 +89,23 @@ function create() {
         leaderboardText.setText(text);
     });
 
+    socket.on("playerHit", (attackerId) => {
+        if (socket.id === attackerId) {
+            score += 3;
+            scoreText.setText("Score: " + score);
+        } else {
+            score = Math.max(0, score - 3);
+            scoreText.setText("Score: " + score);
+            if (score === 0) {
+                eliminatePlayer();
+            }
+        }
+    });
+
+    socket.on("eliminated", () => {
+        eliminatePlayer();
+    });
+
     socket.emit("setPseudo", pseudo);
 }
 
@@ -100,6 +117,44 @@ function update() {
     if (cursors.up.isDown) player.y -= speed;
     if (cursors.down.isDown) player.y += speed;
 
+    // ✅ Mettre à jour la position du pseudo au-dessus du joueur
     player.pseudoText.setPosition(player.x, player.y - 50);
+
+    // ✅ Envoyer les coordonnées du joueur au serveur
     socket.emit("move", { x: player.x, y: player.y });
+}
+
+// 🎯 Fonction pour faire un dash
+function dash() {
+    if (dashCooldown) return;
+
+    isDashing = true;
+    dashCooldown = true;
+    setTimeout(() => {
+        isDashing = false;
+    }, 500);
+
+    setTimeout(() => {
+        dashCooldown = false;
+    }, 2000);
+}
+
+// 🎯 Fonction pour récupérer une pièce
+function collectCoin(player, coin) {
+    score += 1;
+    scoreText.setText("Score: " + score);
+    coin.setPosition(randomPosition(MAP_WIDTH / 2) + MAP_WIDTH / 4, randomPosition(MAP_HEIGHT / 2) + MAP_HEIGHT / 4);
+}
+
+// 🎯 Fonction pour gérer l'élimination et réinitialisation du joueur
+function eliminatePlayer() {
+    alert("💀 Tu as perdu toutes tes pièces ! Recommence !");
+    score = 10; 
+    scoreText.setText("Score: " + score);
+    player.setPosition(MAP_WIDTH / 2, MAP_HEIGHT / 2);
+}
+
+// 🎯 Fonction pour générer une position aléatoire
+function randomPosition(max) {
+    return Math.floor(Math.random() * max);
 }
