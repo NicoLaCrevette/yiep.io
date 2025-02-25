@@ -8,7 +8,7 @@ const server = http.createServer(app);
 
 // ✅ Activer CORS pour autoriser les connexions depuis Vercel
 app.use(cors({
-    origin: "https://yiep-io.vercel.app", // Remplace par ton URL Vercel
+    origin: "https://yiep-io.vercel.app", 
     methods: ["GET", "POST"]
 }));
 
@@ -32,6 +32,7 @@ io.on("connection", (socket) => {
         pseudo: "Joueur" 
     };
     io.emit("updatePlayers", players);
+    updateLeaderboard();
 
     // Mise à jour de la position du joueur
     socket.on("move", (data) => {
@@ -47,6 +48,7 @@ io.on("connection", (socket) => {
         if (players[socket.id]) {
             players[socket.id].pseudo = pseudo;
             io.emit("updatePlayers", players);
+            updateLeaderboard();
         }
     });
 
@@ -70,6 +72,8 @@ io.on("connection", (socket) => {
                     console.log(`💀 ${targetId} est éliminé et recommence.`);
                     target.score = 10;
                 }
+
+                updateLeaderboard();
             }
         }
     });
@@ -78,9 +82,19 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         delete players[socket.id];
         io.emit("updatePlayers", players);
+        updateLeaderboard();
         console.log(`❌ Déconnexion : ${socket.id}`);
     });
 });
+
+// 🎯 Fonction pour mettre à jour le classement
+function updateLeaderboard() {
+    let leaderboard = Object.values(players)
+        .sort((a, b) => b.score - a.score) 
+        .slice(0, 5); // Top 5 joueurs
+
+    io.emit("updateLeaderboard", leaderboard);
+}
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
