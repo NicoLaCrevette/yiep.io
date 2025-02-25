@@ -7,9 +7,9 @@ let score = 0;
 let scoreText;
 let coins = [];
 
-const MAP_WIDTH = 2000;  // Largeur de la carte
-const MAP_HEIGHT = 2000; // Hauteur de la carte
-const COIN_COUNT = 10;   // Nombre de pièces
+const MAP_WIDTH = 20000;  // Largeur de la carte (10x plus grande)
+const MAP_HEIGHT = 20000; // Hauteur de la carte
+const COIN_COUNT = 50;    // Nombre de pièces sur la carte
 
 const config = {
     type: Phaser.AUTO,
@@ -29,7 +29,7 @@ function preload() {
 }
 
 function create() {
-    // Création du joueur
+    // Création du joueur au centre de la map
     player = this.physics.add.image(MAP_WIDTH / 2, MAP_HEIGHT / 2, "player").setScale(0.3);
     player.setCollideWorldBounds(true);
 
@@ -40,10 +40,10 @@ function create() {
 
     cursors = this.input.keyboard.createCursorKeys();
 
-    // Ajouter le score en haut de l'écran
+    // Ajouter le score en haut de l'écran (fixe)
     scoreText = this.add.text(10, 10, "Score: 0", { fontSize: "20px", fill: "#fff" }).setScrollFactor(0);
 
-    // Générer plusieurs pièces
+    // Générer plusieurs pièces aléatoirement sur toute la map
     for (let i = 0; i < COIN_COUNT; i++) {
         let coin = this.physics.add.image(randomPosition(MAP_WIDTH), randomPosition(MAP_HEIGHT), "coin").setScale(0.5);
         coins.push(coin);
@@ -57,7 +57,7 @@ function create() {
 }
 
 function update() {
-    let speed = 5;
+    let speed = 7; // Vitesse du joueur
 
     if (cursors.left.isDown) player.x -= speed;
     if (cursors.right.isDown) player.x += speed;
