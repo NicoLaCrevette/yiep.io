@@ -19,16 +19,14 @@ const io = new Server(server, {
     }
 });
 
-let players = {}; // Stockage des joueurs connectés
+let players = {}; 
 
-// 🎮 Gestion des connexions des joueurs
 io.on("connection", (socket) => {
     console.log(`✅ Nouvelle connexion : ${socket.id}`);
 
     players[socket.id] = { x: Math.random() * 800, y: Math.random() * 600 };
     io.emit("updatePlayers", players);
 
-    // 🎮 Mise à jour des positions des joueurs
     socket.on("move", (data) => {
         if (players[socket.id]) {
             players[socket.id] = data;
@@ -36,7 +34,6 @@ io.on("connection", (socket) => {
         }
     });
 
-    // 🔴 Déconnexion d'un joueur
     socket.on("disconnect", () => {
         delete players[socket.id];
         io.emit("updatePlayers", players);
@@ -44,7 +41,6 @@ io.on("connection", (socket) => {
     });
 });
 
-// 🚀 Démarrer le serveur
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🎉 Serveur en ligne sur le port ${PORT}`);

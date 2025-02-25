@@ -7,9 +7,9 @@ let score = 0;
 let scoreText;
 let coins = [];
 
-const MAP_WIDTH = 20000;  // Largeur de la carte (10x plus grande)
-const MAP_HEIGHT = 20000; // Hauteur de la carte
-const COIN_COUNT = 50;    // Nombre de pièces sur la carte
+const MAP_WIDTH = 20000;  // Taille de la carte
+const MAP_HEIGHT = 20000; 
+const COIN_COUNT = 50;    // Nombre de pièces
 
 const config = {
     type: Phaser.AUTO,
@@ -25,8 +25,7 @@ const game = new Phaser.Game(config);
 
 function preload() {
     this.load.image("player", "assets/player.png"); 
-    this.load.image("coin", "assets/coin.png");
-    console.log("✅ Images chargées !");
+    this.load.image("coin", "assets/coin.png"); 
 }
 
 function create() {
@@ -41,20 +40,26 @@ function create() {
 
     cursors = this.input.keyboard.createCursorKeys();
 
-    // Ajouter le score en haut de l'écran (fixe)
+    // Score en haut de l'écran
     scoreText = this.add.text(10, 10, "Score: 0", { fontSize: "20px", fill: "#fff" }).setScrollFactor(0);
 
-    // Générer plusieurs pièces aléatoirement sur toute la map
-    for (let i = 0; i < COIN_COUNT; i++) {
-    let coin = this.physics.add.image(randomPosition(MAP_WIDTH), randomPosition(MAP_HEIGHT), "coin")
-        .setScale(1.5)  // 🔹 Agrandir la pièce
-        .setDepth(10);   // 🔹 Mettre la pièce au-dessus
-    console.log(`💰 Pièce générée à : (${coin.x}, ${coin.y})`);
-    coins.push(coin);
-    this.physics.add.overlap(player, coin, collectCoin, null, this);
-}
+    console.log(`🚀 Joueur généré à : (${player.x}, ${player.y})`);
 
-    // Écouter les mises à jour des joueurs
+    // Générer plusieurs pièces
+    for (let i = 0; i < COIN_COUNT; i++) {
+        let x = randomPosition(MAP_WIDTH / 2) + MAP_WIDTH / 4;
+        let y = randomPosition(MAP_HEIGHT / 2) + MAP_HEIGHT / 4;
+        
+        console.log(`💰 Pièce générée à : (${x}, ${y})`);
+        
+        let coin = this.physics.add.image(x, y, "coin")
+            .setScale(2)  // Agrandir pour mieux voir
+            .setDepth(100)  // Toujours au-dessus du joueur
+            .setTint(0xffff00); // Ajoute une couleur jaune
+        coins.push(coin);
+        this.physics.add.overlap(player, coin, collectCoin, null, this);
+    }
+
     socket.on("updatePlayers", (data) => {
         players = data;
     });
@@ -76,7 +81,7 @@ function update() {
 function collectCoin(player, coin) {
     score += 1;
     scoreText.setText("Score: " + score);
-    coin.setPosition(randomPosition(MAP_WIDTH), randomPosition(MAP_HEIGHT)); // Nouvelle position aléatoire
+    coin.setPosition(randomPosition(MAP_WIDTH / 2) + MAP_WIDTH / 4, randomPosition(MAP_HEIGHT / 2) + MAP_HEIGHT / 4); // Nouvelle position aléatoire
 }
 
 // Fonction pour générer une position aléatoire
