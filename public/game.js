@@ -32,7 +32,7 @@ function create() {
     // Création du joueur
     player = this.physics.add.image(MAP_WIDTH / 2, MAP_HEIGHT / 2, "player")
         .setScale(0.3)
-        .setSize(100, 100) // 🔹 Réduction de la hitbox du joueur
+        .setSize(125, 125) // 🔹 Réduction de la hitbox du joueur
         .setCollideWorldBounds(true);
 
     // Définir la caméra qui suit le joueur
