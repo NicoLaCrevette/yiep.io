@@ -1,11 +1,15 @@
-const socket = io("https://yiep-server.up.railway.app"); // Vérifie que c'est la bonne URL
+const socket = io("https://yiep-server.up.railway.app"); // Vérifie que c'est bien ton URL
 
 let players = {}; // Stocke tous les joueurs connectés
 let player;
 let cursors;
 let score = 0;
 let scoreText;
-let coin;
+let coins = [];
+
+const MAP_WIDTH = 2000;  // Largeur de la carte
+const MAP_HEIGHT = 2000; // Hauteur de la carte
+const COIN_COUNT = 10;   // Nombre de pièces
 
 const config = {
     type: Phaser.AUTO,
@@ -25,16 +29,26 @@ function preload() {
 }
 
 function create() {
-    player = this.physics.add.image(400, 300, "player").setScale(0.3);
-    coin = this.physics.add.image(randomPosition(800), randomPosition(600), "coin").setScale(0.5);
+    // Création du joueur
+    player = this.physics.add.image(MAP_WIDTH / 2, MAP_HEIGHT / 2, "player").setScale(0.3);
+    player.setCollideWorldBounds(true);
+
+    // Définir la caméra qui suit le joueur
+    this.cameras.main.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
+    this.physics.world.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
+    this.cameras.main.startFollow(player, true, 0.1, 0.1);
 
     cursors = this.input.keyboard.createCursorKeys();
 
-    // Ajouter le score
-    scoreText = this.add.text(10, 10, "Score: 0", { fontSize: "20px", fill: "#fff" });
+    // Ajouter le score en haut de l'écran
+    scoreText = this.add.text(10, 10, "Score: 0", { fontSize: "20px", fill: "#fff" }).setScrollFactor(0);
 
-    // Vérifier si le joueur touche la pièce
-    this.physics.add.overlap(player, coin, collectCoin, null, this);
+    // Générer plusieurs pièces
+    for (let i = 0; i < COIN_COUNT; i++) {
+        let coin = this.physics.add.image(randomPosition(MAP_WIDTH), randomPosition(MAP_HEIGHT), "coin").setScale(0.5);
+        coins.push(coin);
+        this.physics.add.overlap(player, coin, collectCoin, null, this);
+    }
 
     // Écouter les mises à jour des joueurs
     socket.on("updatePlayers", (data) => {
@@ -55,10 +69,10 @@ function update() {
 }
 
 // Fonction pour récupérer une pièce
-function collectCoin() {
+function collectCoin(player, coin) {
     score += 1;
     scoreText.setText("Score: " + score);
-    coin.setPosition(randomPosition(800), randomPosition(600)); // Nouvelle position
+    coin.setPosition(randomPosition(MAP_WIDTH), randomPosition(MAP_HEIGHT)); // Nouvelle position aléatoire
 }
 
 // Fonction pour générer une position aléatoire
