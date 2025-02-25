@@ -1,4 +1,4 @@
-const socket = io("yiepio-production.up.railway.app");
+const socket = io("https://yiep-server.up.railway.app");
 
 let players = {};
 
