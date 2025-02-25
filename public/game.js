@@ -29,9 +29,11 @@ function preload() {
 }
 
 function create() {
-    // Création du joueur au centre de la map
-    player = this.physics.add.image(MAP_WIDTH / 2, MAP_HEIGHT / 2, "player").setScale(0.3);
-    player.setCollideWorldBounds(true);
+    // Création du joueur
+    player = this.physics.add.image(MAP_WIDTH / 2, MAP_HEIGHT / 2, "player")
+        .setScale(0.3)
+        .setSize(50, 50) // 🔹 Réduction de la hitbox
+        .setCollideWorldBounds(true);
 
     // Définir la caméra qui suit le joueur
     this.cameras.main.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
@@ -49,13 +51,14 @@ function create() {
     for (let i = 0; i < COIN_COUNT; i++) {
         let x = randomPosition(MAP_WIDTH / 2) + MAP_WIDTH / 4;
         let y = randomPosition(MAP_HEIGHT / 2) + MAP_HEIGHT / 4;
-        
+
         console.log(`💰 Pièce générée à : (${x}, ${y})`);
-        
+
         let coin = this.physics.add.image(x, y, "coin")
-            .setScale(2)  // Agrandir pour mieux voir
-            .setDepth(100)  // Toujours au-dessus du joueur
-            .setTint(0xffff00); // Ajoute une couleur jaune
+            .setScale(2)  // Taille normale de l'affichage
+            .setSize(20, 20) // 🔹 Réduction de la hitbox des pièces
+            .setDepth(100)
+            .setTint(0xffff00); // Couleur jaune pour mieux voir
         coins.push(coin);
         this.physics.add.overlap(player, coin, collectCoin, null, this);
     }
