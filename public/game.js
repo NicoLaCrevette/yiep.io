@@ -39,6 +39,13 @@ function create() {
         .setSize(150, 150) 
         .setCollideWorldBounds(true);
 
+    // ✅ Ajouter le pseudo au-dessus du joueur
+    player.pseudoText = this.add.text(player.x, player.y - 50, pseudo, {
+        fontSize: "16px",
+        fill: "#fff",
+        align: "center"
+    }).setOrigin(0.5).setDepth(200);
+
     this.cameras.main.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
     this.physics.world.setBounds(0, 0, MAP_WIDTH, MAP_HEIGHT);
     this.cameras.main.startFollow(player, true, 0.1, 0.1);
@@ -47,7 +54,6 @@ function create() {
     this.input.keyboard.on("keydown-E", dash);
 
     scoreText = this.add.text(10, 10, "Score: " + score, { fontSize: "20px", fill: "#fff" }).setScrollFactor(0);
-    pseudoText = this.add.text(player.x - 30, player.y - 50, pseudo, { fontSize: "16px", fill: "#fff" }).setScrollFactor(0);
 
     console.log(`🚀 Joueur généré à : (${player.x}, ${player.y})`);
 
@@ -96,7 +102,8 @@ function update() {
     if (cursors.up.isDown) player.y -= speed;
     if (cursors.down.isDown) player.y += speed;
 
-    pseudoText.setPosition(player.x - 30, player.y - 50);
+    // ✅ Mettre à jour la position du pseudo au-dessus du joueur
+    player.pseudoText.setPosition(player.x, player.y - 50);
 
     socket.emit("move", { x: player.x, y: player.y });
 }
