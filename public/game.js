@@ -55,7 +55,7 @@ function create() {
         console.log(`💰 Pièce générée à : (${x}, ${y})`);
 
         let coin = this.physics.add.image(x, y, "coin")
-            .setScale(0.25)  // 🔹 Taille réduite des pièces (4x plus petites)
+            .setScale(0.07)  // 🔹 Taille réduite des pièces (4x plus petites)
             .setSize(10, 10) // 🔹 Hitbox reste identique
             .setDepth(100)
             .setTint(0xffff00); // Couleur jaune pour mieux voir
