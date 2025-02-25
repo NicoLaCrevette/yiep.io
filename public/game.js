@@ -40,7 +40,7 @@ function create() {
         .setSize(150, 150) 
         .setCollideWorldBounds(true);
 
-    // ✅ Ajout du pseudo au-dessus du joueur
+    // ✅ Ajouter le pseudo au-dessus du joueur
     player.pseudoText = this.add.text(player.x, player.y - 50, pseudo, {
         fontSize: "16px",
         fill: "#fff",
@@ -56,11 +56,12 @@ function create() {
 
     scoreText = this.add.text(10, 10, "Score: " + score, { fontSize: "20px", fill: "#fff" }).setScrollFactor(0);
 
-    // ✅ Classement affiché à droite
-    leaderboardText = this.add.text(600, 10, "🏆 Classement 🏆", {
+    // ✅ Classement affiché dans le carré à gauche
+    leaderboardText = this.add.text(50, 400, "🏆 Classement 🏆", {
         fontSize: "18px",
-        fill: "#ffcc00"
-    }).setScrollFactor(0);
+        fill: "#ffcc00",
+        align: "left"
+    }).setScrollFactor(0).setDepth(300);
 
     console.log(`🚀 Joueur généré à : (${player.x}, ${player.y})`);
 
