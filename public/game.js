@@ -1,4 +1,4 @@
-const socket = io("http://localhost:3000");
+const socket = io("yiepio-production.up.railway.app");
 
 let players = {};
 
