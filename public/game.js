@@ -1,10 +1,13 @@
-const socket = io("https://yiep-server.up.railway.app"); // Vérifie que c'est bien ton URL
+const socket = io("https://yiep-server.up.railway.app"); 
 
 let players = {}; 
 let player;
 let cursors;
-let score = 10; // Début avec 10 pièces
+let score = 10; 
 let scoreText;
+let pseudo = localStorage.getItem("pseudo") || "Joueur";
+let skin = localStorage.getItem("skin") || "skin1";
+let pseudoText;
 let coins = [];
 let isDashing = false;
 let dashCooldown = false;
@@ -32,7 +35,7 @@ function preload() {
 
 function create() {
     player = this.physics.add.image(MAP_WIDTH / 2, MAP_HEIGHT / 2, "player")
-        .setScale(0.07)
+        .setScale(0.3) 
         .setSize(150, 150) 
         .setCollideWorldBounds(true);
 
@@ -44,6 +47,7 @@ function create() {
     this.input.keyboard.on("keydown-E", dash);
 
     scoreText = this.add.text(10, 10, "Score: " + score, { fontSize: "20px", fill: "#fff" }).setScrollFactor(0);
+    pseudoText = this.add.text(player.x - 30, player.y - 50, pseudo, { fontSize: "16px", fill: "#fff" }).setScrollFactor(0);
 
     console.log(`🚀 Joueur généré à : (${player.x}, ${player.y})`);
 
@@ -64,6 +68,8 @@ function create() {
         players = data;
     });
 
+    socket.emit("setPseudo", pseudo);
+
     socket.on("playerHit", (attackerId) => {
         if (socket.id === attackerId) {
             score += 3;
@@ -76,6 +82,10 @@ function create() {
             }
         }
     });
+
+    socket.on("eliminated", () => {
+        eliminatePlayer();
+    });
 }
 
 function update() {
@@ -85,6 +95,8 @@ function update() {
     if (cursors.right.isDown) player.x += speed;
     if (cursors.up.isDown) player.y -= speed;
     if (cursors.down.isDown) player.y += speed;
+
+    pseudoText.setPosition(player.x - 30, player.y - 50);
 
     socket.emit("move", { x: player.x, y: player.y });
 }

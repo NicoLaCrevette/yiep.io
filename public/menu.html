@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yiep.io - Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: white;
+        }
+        #menu {
+            margin-top: 100px;
+        }
+        input, select, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <h1>Bienvenue sur Yiep.io</h1>
+        <label for="pseudo">Choisis un pseudo :</label>
+        <input type="text" id="pseudo" placeholder="Ton pseudo">
+
+        <label for="skin">Choisis un skin :</label>
+        <select id="skin">
+            <option value="skin1">Skin 1</option>
+            <option value="skin2">Skin 2</option>
+            <option value="skin3">Skin 3</option>
+        </select>
+
+        <button onclick="startGame()">Jouer</button>
+    </div>
+
+    <script>
+        function startGame() {
+            let pseudo = document.getElementById("pseudo").value;
+            let skin = document.getElementById("skin").value;
+
+            if (!pseudo) {
+                alert("Tu dois entrer un pseudo !");
+                return;
+            }
+
+            localStorage.setItem("pseudo", pseudo);
+            localStorage.setItem("skin", skin);
+            window.location.href = "game.html"; // Redirige vers le jeu
+        }
+    </script>
+</body>
+</html>

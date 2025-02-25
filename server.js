@@ -14,7 +14,7 @@ app.use(cors({
 
 const io = new Server(server, {
     cors: {
-        origin: "https://yiep-io.vercel.app", // Remplace ici aussi par ton URL Vercel
+        origin: "https://yiep-io.vercel.app",
         methods: ["GET", "POST"]
     }
 });
@@ -24,19 +24,28 @@ let players = {};
 io.on("connection", (socket) => {
     console.log(`✅ Nouvelle connexion : ${socket.id}`);
 
-    // Initialisation du joueur avec 10 pièces
+    // Initialisation du joueur avec 10 pièces et un pseudo par défaut
     players[socket.id] = { 
         x: Math.random() * 800, 
         y: Math.random() * 600,
-        score: 10 // Départ avec 10 pièces
+        score: 10,
+        pseudo: "Joueur" 
     };
     io.emit("updatePlayers", players);
 
-    // Mise à jour de la position d'un joueur
+    // Mise à jour de la position du joueur
     socket.on("move", (data) => {
         if (players[socket.id]) {
             players[socket.id].x = data.x;
             players[socket.id].y = data.y;
+            io.emit("updatePlayers", players);
+        }
+    });
+
+    // Mise à jour du pseudo
+    socket.on("setPseudo", (pseudo) => {
+        if (players[socket.id]) {
+            players[socket.id].pseudo = pseudo;
             io.emit("updatePlayers", players);
         }
     });
@@ -48,19 +57,18 @@ io.on("connection", (socket) => {
             let target = players[targetId];
 
             if (target.score > 0) {
-                target.score = Math.max(0, target.score - 3); // Perd 3 pièces
-                attacker.score += 3; // Gagne 3 pièces
+                target.score = Math.max(0, target.score - 3);
+                attacker.score += 3;
 
                 io.to(targetId).emit("playerHit", socket.id);
                 io.to(socket.id).emit("playerHit", socket.id);
 
                 console.log(`⚔️ ${socket.id} a volé 3 pièces à ${targetId}`);
 
-                // Vérifie si la cible est éliminée
                 if (target.score === 0) {
                     io.to(targetId).emit("eliminated");
                     console.log(`💀 ${targetId} est éliminé et recommence.`);
-                    target.score = 10; // Réinitialisation
+                    target.score = 10;
                 }
             }
         }
