@@ -25,7 +25,8 @@ const game = new Phaser.Game(config);
 
 function preload() {
     this.load.image("player", "assets/player.png"); 
-    this.load.image("coin", "assets/coin.png"); 
+    this.load.image("coin", "assets/coin.png");
+    console.log("✅ Images chargées !");
 }
 
 function create() {
