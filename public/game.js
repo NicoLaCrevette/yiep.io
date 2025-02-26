@@ -84,9 +84,13 @@ function create() {
 
     socket.on("updateLeaderboard", (leaderboard) => {
         let text = "🏆 Classement 🏆\n";
-        leaderboard.forEach((p, index) => {
-            text += `${index + 1}. ${p.pseudo} - ${p.score} pts\n`;
-        });
+        if (leaderboard.length === 0) {
+            text += "Aucun joueur";
+        } else {
+            leaderboard.forEach((p, index) => {
+                text += `${index + 1}. ${p.pseudo} - ${p.score} pts\n`;
+            });
+        }
         leaderboardText.setText(text);
     });
 
@@ -118,10 +122,7 @@ function update() {
     if (cursors.up.isDown) player.y -= speed;
     if (cursors.down.isDown) player.y += speed;
 
-    // ✅ Mettre à jour la position du pseudo au-dessus du joueur
     player.pseudoText.setPosition(player.x, player.y - 50);
-
-    // ✅ Envoyer les coordonnées du joueur au serveur
     socket.emit("move", { x: player.x, y: player.y });
 }
 
@@ -145,6 +146,7 @@ function collectCoin(player, coin) {
     score += 1;
     scoreText.setText("Score: " + score);
     coin.setPosition(randomPosition(MAP_WIDTH / 2) + MAP_WIDTH / 4, randomPosition(MAP_HEIGHT / 2) + MAP_HEIGHT / 4);
+    socket.emit("updateScore", score);
 }
 
 // 🎯 Fonction pour gérer l'élimination et réinitialisation du joueur
