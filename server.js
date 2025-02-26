@@ -29,7 +29,7 @@ io.on("connection", (socket) => {
         x: Math.random() * 800, 
         y: Math.random() * 600,
         score: 10,
-        pseudo: "Joueur" 
+        pseudo: `Joueur-${socket.id.substring(0, 5)}` // Pseudo unique
     };
 
     io.emit("updatePlayers", players);
@@ -50,6 +50,14 @@ io.on("connection", (socket) => {
             players[socket.id].x = data.x;
             players[socket.id].y = data.y;
             io.emit("updatePlayers", players);
+        }
+    });
+
+    // ✅ Gestion du score
+    socket.on("updateScore", (newScore) => {
+        if (players[socket.id]) {
+            players[socket.id].score = newScore;
+            updateLeaderboard();
         }
     });
 
@@ -91,11 +99,13 @@ io.on("connection", (socket) => {
 // 🎯 Fonction pour mettre à jour le classement
 function updateLeaderboard() {
     let leaderboard = Object.values(players)
-        .sort((a, b) => b.score - a.score) // Classement du plus grand au plus petit
-        .slice(0, 5); // Top 5 joueurs
+        .sort((a, b) => b.score - a.score);
 
-    console.log("🏆 Mise à jour du classement :", leaderboard);
-    io.emit("updateLeaderboard", leaderboard);
+    if (leaderboard.length === 0) {
+        leaderboard = [{ pseudo: "Aucun joueur", score: 0 }];
+    }
+
+    io.emit("updateLeaderboard", leaderboard.slice(0, 5));
 }
 
 const PORT = process.env.PORT || 3000;

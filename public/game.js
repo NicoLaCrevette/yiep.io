@@ -83,16 +83,18 @@ function create() {
     });
 
     socket.on("updateLeaderboard", (leaderboard) => {
-        let text = "🏆 Classement 🏆\n";
-        if (leaderboard.length === 0) {
-            text += "Aucun joueur";
-        } else {
-            leaderboard.forEach((p, index) => {
-                text += `${index + 1}. ${p.pseudo} - ${p.score} pts\n`;
-            });
-        }
-        leaderboardText.setText(text);
-    });
+    let text = "🏆 Classement 🏆\n";
+    
+    if (leaderboard.length === 0) {
+        text += "Aucun joueur\n";
+    } else {
+        leaderboard.forEach((p, index) => {
+            text += `${index + 1}. ${p.pseudo} - ${p.score} pts\n`;
+        });
+    }
+
+    leaderboardText.setText(text);
+});
 
     socket.on("playerHit", (attackerId) => {
         if (socket.id === attackerId) {
