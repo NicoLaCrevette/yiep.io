@@ -32,7 +32,7 @@ io.on("connection", (socket) => {
         pseudo: `Joueur-${socket.id.substring(0, 5)}` // Pseudo unique
     };
 
-    io.emit("updatePlayers", players);
+    io.emit("updatePlayers", Object.values(players));
     updateLeaderboard();
 
     // ✅ Réception et mise à jour du pseudo

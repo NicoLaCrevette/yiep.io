@@ -12,6 +12,7 @@ let coins = [];
 let isDashing = false;
 let dashCooldown = false;
 let leaderboardText;
+let otherPlayers = {};
 
 const MAP_WIDTH = 20000;  
 const MAP_HEIGHT = 20000; 
@@ -81,6 +82,36 @@ function create() {
     socket.on("updatePlayers", (data) => {
         players = data;
     });
+
+    socket.on("updatePlayers", (playersData) => {
+    for (let id in playersData) {
+        if (id !== socket.id) { // Ne pas créer de joueur en double
+            if (!otherPlayers[id]) {
+                otherPlayers[id] = game.scene.scenes[0].add.image(playersData[id].x, playersData[id].y, "player")
+                    .setScale(0.3)
+                    .setDepth(150);
+                
+                otherPlayers[id].pseudoText = game.scene.scenes[0].add.text(playersData[id].x, playersData[id].y - 50, playersData[id].pseudo, {
+                    fontSize: "16px",
+                    fill: "#fff"
+                }).setOrigin(0.5).setDepth(200);
+            }
+
+            otherPlayers[id].x = playersData[id].x;
+            otherPlayers[id].y = playersData[id].y;
+            otherPlayers[id].pseudoText.setPosition(playersData[id].x, playersData[id].y - 50);
+        }
+    }
+
+    // ✅ Supprimer les joueurs qui ne sont plus connectés
+    for (let id in otherPlayers) {
+        if (!playersData[id]) {
+            otherPlayers[id].destroy();
+            otherPlayers[id].pseudoText.destroy();
+            delete otherPlayers[id];
+        }
+    }
+});
 
     socket.on("updateLeaderboard", (leaderboard) => {
     let text = "🏆 Classement 🏆\n";
