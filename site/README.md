@@ -1,42 +1,60 @@
 # Site vitrine — Nicooow
 
-Page unique (style guns.lol / linktree) avec les liens vers les réseaux et le planning des lives.
+Page unique (style guns.lol / linktree) avec les liens vers les réseaux et le planning des lives,
+plus une page d'admin pour gérer le planning sans toucher au code.
 
-- **Un seul fichier** : `index.html` (HTML + CSS + JS inclus, aucune dépendance à installer).
-- Fonctionne en ouvrant simplement le fichier dans un navigateur.
+| Fichier | Rôle |
+|---------|------|
+| `index.html` | la page publique (HTML + CSS + JS inclus, aucune dépendance) |
+| `admin.html` | l'éditeur de planning, protégé par mot de passe |
+| `schedule.json` | les créneaux — lu par la page publique, écrit par l'admin |
 
-## Voir la page
+## Lancer le site
 
-- En local : double-clic sur `site/index.html`
-- Via le serveur du projet : `npm run dev` puis http://localhost:3000/links
-
-## Modifier le planning
-
-Tout se passe dans le bloc `const SCHEDULE = [...]` en bas de `index.html` :
-
-```js
-const SCHEDULE = [
-  { day:1, off:true },                                          // lundi : repos
-  { day:2, start:"21:00", end:"00:00", game:"Just Chatting" },  // mardi 21h -> minuit
-  { day:5, start:"21:00", end:"00:30", game:"Gaming" },         // live qui déborde après minuit
-];
+```bash
+npm install
+ADMIN_PASSWORD="ton-mot-de-passe" npm run dev
 ```
 
-| Champ   | Rôle |
-|---------|------|
-| `day`   | 0 = dimanche, 1 = lundi … 6 = samedi |
-| `start` | heure de début `"HH:MM"` (24 h, **heure de Paris**) |
-| `end`   | heure de fin — peut passer minuit (`"01:30"`) |
-| `game`  | texte affiché à droite (facultatif) |
-| `off`   | `true` pour un jour sans stream |
+- Page publique : http://localhost:3000/links
+- Admin : http://localhost:3000/links/admin.html
 
-La page calcule automatiquement, à l'heure de Paris quel que soit le fuseau du visiteur :
-le jour en cours (surligné), le badge « Stream prévu maintenant », et le bandeau « Prochain live ».
-Elle se met à jour toute seule chaque minute.
+`index.html` s'ouvre aussi en double-clic, mais sans serveur il affiche le planning de secours
+codé en dur (le navigateur bloque la lecture de `schedule.json` en `file://`).
+
+## Gérer le planning depuis l'admin
+
+1. Va sur `/links/admin.html` et entre le mot de passe.
+2. Chaque jour a un bouton **+ Ajouter** : un créneau apparaît avec début, fin et jeu/thème.
+   Un jour peut contenir **plusieurs streams**.
+3. La corbeille supprime un créneau, **Annuler** recharge le dernier planning enregistré.
+4. **Enregistrer** écrit dans `schedule.json` — la page publique est à jour au rechargement suivant.
+
+Les heures sont en **heure de Paris**. Une fin plus petite que le début signifie que le live passe
+minuit (`21:00 → 00:30`). Le champ jeu/thème est facultatif ; un jour sans créneau s'affiche « Repos ».
+
+Le bouton **Exporter** donne le contenu de `schedule.json` à copier ou télécharger : c'est la solution
+de repli si le site est hébergé en statique, sans serveur Node.
+
+### Mot de passe
+
+Il se définit par variable d'environnement, jamais dans le code :
+
+```bash
+ADMIN_PASSWORD="ton-mot-de-passe" npm run dev
+```
+
+Sans cette variable, le serveur **refuse toute écriture** (l'admin affiche le message correspondant) :
+le planning reste modifiable à la main dans `schedule.json`. Après 10 mauvais mots de passe, l'IP est
+bloquée 15 minutes.
+
+> ⚠️ `admin.html` est une page accessible à tout le monde — c'est l'API qui est protégée, pas l'URL.
+> Sans le mot de passe, personne ne peut enregistrer quoi que ce soit. Sers le site en HTTPS en
+> production, sinon le mot de passe circule en clair.
 
 ## Autres personnalisations
 
-- **Photo de profil** : remplace `<div class="avatar avatar-fallback">N</div>` par
+- **Photo de profil** : dans `index.html`, remplace `<div class="avatar avatar-fallback">N</div>` par
   `<img class="avatar" src="avatar.png" alt="Nicooow">` et dépose l'image dans ce dossier.
 - **Bio / pseudo** : balises `<h1>`, `.handle` et `.bio` dans le bloc `<header class="profile">`.
 - **Couleurs** : variables CSS dans `:root` (`--accent` = violet Twitch).
@@ -44,9 +62,11 @@ Elle se met à jour toute seule chaque minute.
   dans la section « couleurs de marque » du CSS.
 
 > ⚠️ Le badge « Stream prévu maintenant » se base sur le planning, pas sur l'API Twitch.
-> Pour un vrai statut live il faut une clé API Twitch (client ID + token) et un appel côté serveur.
+> Pour un vrai statut live il faudrait une clé API Twitch (client ID + token) et un appel côté serveur.
 
 ## Mettre en ligne
 
-Le dossier `site/` est un site statique : il se déploie tel quel sur GitHub Pages, Netlify,
-Vercel ou Cloudflare Pages.
+- **Avec le serveur Node** (recommandé) : l'admin fonctionne et enregistre directement.
+- **En statique** (GitHub Pages, Netlify, Vercel, Cloudflare Pages) : le dossier `site/` se déploie
+  tel quel, mais `/api/schedule` n'existe pas. Utilise alors **Exporter** dans l'admin et remplace
+  `schedule.json` à la main.

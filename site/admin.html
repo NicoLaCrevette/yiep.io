@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin — Planning</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%239146FF'/%3E%3Ctext x='50' y='70' font-size='54' font-family='Arial,sans-serif' font-weight='bold' text-anchor='middle' fill='white'%3E%E2%9A%99%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#08080c;
+  --card:rgba(255,255,255,.035);
+  --card-hover:rgba(255,255,255,.065);
+  --border:rgba(255,255,255,.08);
+  --border-strong:rgba(255,255,255,.16);
+  --text:#f2f2f5;
+  --muted:#9b9baa;
+  --faint:#6a6a7a;
+  --accent:#9146ff;
+  --ok:#3ddc84;
+  --err:#ff4757;
+  --radius:14px;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  margin:0;min-height:100dvh;
+  background:var(--bg);color:var(--text);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  padding:44px 20px 120px;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(145,70,255,.16),transparent 70%);
+}
+.wrap{position:relative;z-index:1;max-width:640px;margin:0 auto}
+
+h1{margin:0 0 4px;font-size:24px;font-weight:800;letter-spacing:-.5px}
+.sub{margin:0 0 28px;color:var(--faint);font-size:13.5px}
+
+/* ---------- champs ---------- */
+input[type=text],input[type=password],input[type=time],select{
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border);
+  color:var(--text);
+  font:inherit;font-size:14px;
+  padding:9px 11px;border-radius:10px;
+  width:100%;min-width:0;
+  transition:border-color .18s,background .18s;
+}
+input:focus,select:focus{outline:none;border-color:var(--accent);background:rgba(145,70,255,.08)}
+input[type=time]{font-variant-numeric:tabular-nums}
+select{appearance:none;cursor:pointer;padding-right:28px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239b9baa' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;background-size:15px}
+label.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+label.field span{font-size:11px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--faint)}
+
+/* ---------- boutons ---------- */
+button{font:inherit;cursor:pointer;border-radius:10px;transition:background .18s,border-color .18s,transform .12s,opacity .18s}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.btn{
+  background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);
+  padding:10px 16px;font-size:14px;font-weight:500;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.btn:hover:not(:disabled){background:var(--card-hover);border-color:var(--border-strong)}
+.btn.primary{background:var(--accent);border-color:var(--accent);font-weight:600;color:#fff}
+.btn.primary:hover:not(:disabled){background:#a05cff;border-color:#a05cff}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- connexion ---------- */
+#login{max-width:360px;margin:12vh auto 0;display:flex;flex-direction:column;gap:14px;
+  padding:26px;border:1px solid var(--border);border-radius:18px;background:var(--card)}
+#login h1{font-size:20px}
+
+/* ---------- jours ---------- */
+.day-block{
+  border:1px solid var(--border);border-radius:16px;
+  background:var(--card);
+  padding:14px 16px;margin-bottom:12px;
+}
+.day-block.is-today{border-color:rgba(145,70,255,.4);background:rgba(145,70,255,.07)}
+.day-head{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.day-head h2{margin:0;font-size:15px;font-weight:650;letter-spacing:-.2px}
+.day-head .count{font-size:12px;color:var(--faint);margin-right:auto}
+.badge-today{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  padding:3px 7px;border-radius:6px;background:rgba(145,70,255,.2);color:#c9a6ff}
+.add-slot{
+  background:none;border:1px dashed var(--border-strong);color:var(--muted);
+  padding:7px 12px;font-size:13px;
+}
+.add-slot:hover{color:var(--text);border-color:var(--accent);background:rgba(145,70,255,.08)}
+
+.slot-row{
+  display:grid;
+  grid-template-columns:1fr 1fr 1.5fr auto;
+  gap:10px;align-items:end;
+  padding:12px 0 0;
+}
+.slot-row + .slot-row{border-top:1px solid var(--border);margin-top:12px}
+.del{
+  background:none;border:1px solid var(--border);color:var(--faint);
+  width:37px;height:37px;flex:none;
+  display:flex;align-items:center;justify-content:center;
+}
+.del:hover{color:var(--err);border-color:rgba(255,71,87,.5);background:rgba(255,71,87,.1)}
+.del svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.empty{color:var(--faint);font-size:13.5px;font-style:italic;padding:6px 0 2px}
+.warn{color:#ffb648;font-size:12px;margin-top:8px;display:flex;align-items:center;gap:6px}
+
+/* ---------- barre d'actions ---------- */
+.actions{
+  position:fixed;left:0;right:0;bottom:0;z-index:5;
+  padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+  background:rgba(8,8,12,.86);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--border);
+}
+.actions .inner{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.msg{font-size:13px;margin-right:auto;min-height:20px}
+.msg.ok{color:var(--ok)}
+.msg.err{color:var(--err)}
+.msg.info{color:var(--muted)}
+
+/* ---------- export ---------- */
+dialog{
+  border:1px solid var(--border);border-radius:16px;
+  background:#101017;color:var(--text);
+  padding:22px;max-width:520px;width:calc(100% - 40px);
+}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h2{margin:0 0 6px;font-size:17px}
+dialog p{margin:0 0 12px;color:var(--faint);font-size:13px}
+textarea{
+  width:100%;height:230px;resize:vertical;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  color:var(--text);border-radius:10px;padding:12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;line-height:1.6;
+}
+.dialog-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+
+@media (max-width:520px){
+  body{padding:32px 14px 130px}
+  .slot-row{grid-template-columns:1fr 1fr auto;grid-template-areas:"start end del" "game game game"}
+  .slot-row .f-start{grid-area:start}
+  .slot-row .f-end{grid-area:end}
+  .slot-row .f-game{grid-area:game}
+  .slot-row .del{grid-area:del}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== CONNEXION ===================== -->
+<form id="login" autocomplete="on">
+  <h1>Admin planning</h1>
+  <p class="sub" style="margin:0">Entre le mot de passe pour modifier les horaires.</p>
+  <label class="field">
+    <span>Mot de passe</span>
+    <input type="password" id="password" autocomplete="current-password" required>
+  </label>
+  <button class="btn primary" type="submit" style="justify-content:center">Se connecter</button>
+  <p class="msg err" id="login-msg" style="margin:0"></p>
+</form>
+
+<!-- ===================== ÉDITEUR ===================== -->
+<div class="wrap" id="editor" hidden>
+  <h1>Planning des lives</h1>
+  <p class="sub">Ajoute, modifie ou supprime tes créneaux. Heures en <strong>heure de Paris</strong>. Un jour sans créneau s'affiche comme « Repos ».</p>
+
+  <div id="days"></div>
+
+  <div class="actions">
+    <div class="inner">
+      <span class="msg" id="msg"></span>
+      <button class="btn" type="button" id="reload">
+        <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        Annuler
+      </button>
+      <button class="btn" type="button" id="export">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg>
+        Exporter
+      </button>
+      <button class="btn primary" type="button" id="save">
+        <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+        Enregistrer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== EXPORT ===================== -->
+<dialog id="export-dialog">
+  <h2>Contenu de schedule.json</h2>
+  <p>Si le site est hébergé en statique (sans serveur Node), copie ce contenu dans <code>site/schedule.json</code>.</p>
+  <textarea id="export-text" readonly spellcheck="false"></textarea>
+  <div class="dialog-actions">
+    <button class="btn" type="button" id="download">Télécharger</button>
+    <button class="btn" type="button" id="copy">Copier</button>
+    <button class="btn primary" type="button" id="close-dialog" autofocus>Fermer</button>
+  </div>
+</dialog>
+
+<script>
+const DAY_NAMES = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+const ORDER = [1,2,3,4,5,6,0];
+const API = "/api/schedule";
+
+let slots = [];       // état courant de l'éditeur
+let password = "";    // gardé en mémoire de session uniquement
+let seq = 0;          // compteur d'identifiants locaux
+
+const $ = id => document.getElementById(id);
+
+/* --------------------------------------------------------------
+   Connexion — on valide le mot de passe via une écriture à blanc
+   -------------------------------------------------------------- */
+$("login").addEventListener("submit", async e => {
+  e.preventDefault();
+  const msg = $("login-msg");
+  msg.textContent = "";
+  password = $("password").value;
+
+  try {
+    const res = await fetch(API + "/check", {
+      method:"POST",
+      headers:{ "x-admin-password": password }
+    });
+    if (res.status === 401){ msg.textContent = "Mot de passe incorrect."; return; }
+    if (res.status === 429){ msg.textContent = "Trop de tentatives. Réessaie dans quelques minutes."; return; }
+    if (res.status === 503){
+      msg.textContent = "ADMIN_PASSWORD n'est pas défini côté serveur (voir site/README.md).";
+      return;
+    }
+    if (!res.ok) throw new Error(res.status);
+  } catch {
+    msg.textContent = "Serveur injoignable. L'enregistrement ne marchera pas, mais tu peux quand même exporter le JSON.";
+  }
+
+  sessionStorage.setItem("admin-pwd", password);
+  openEditor();
+});
+
+function openEditor(){
+  $("login").hidden = true;
+  $("editor").hidden = false;
+  loadSlots();
+}
+
+/* --------------------------------------------------------------
+   Chargement / rendu
+   -------------------------------------------------------------- */
+async function loadSlots(){
+  try {
+    const res = await fetch("schedule.json", { cache:"no-store" });
+    const data = await res.json();
+    slots = (data.slots || []).map(s => ({ ...s, id: s.id || "l" + (++seq) }));
+  } catch {
+    slots = [];
+    setMsg("Impossible de lire schedule.json — on démarre d'un planning vide.", "err");
+  }
+  renderDays();
+}
+
+function parisToday(){
+  const wd = { dim:0, lun:1, mar:2, mer:3, jeu:4, ven:5, sam:6 };
+  const value = new Intl.DateTimeFormat("fr-FR",{ timeZone:"Europe/Paris", weekday:"short" })
+    .format(new Date()).toLowerCase().slice(0,3);
+  return wd[value] ?? new Date().getDay();
+}
+
+function renderDays(){
+  const today = parisToday();
+  const root = $("days");
+  root.innerHTML = "";
+
+  ORDER.forEach(day => {
+    const daySlots = slots
+      .filter(s => s.day === day)
+      .sort((a,b) => a.start.localeCompare(b.start));
+
+    const block = document.createElement("div");
+    block.className = "day-block" + (day === today ? " is-today" : "");
+
+    const head = document.createElement("div");
+    head.className = "day-head";
+    head.innerHTML =
+      `<h2>${DAY_NAMES[day]}</h2>` +
+      `<span class="count">${daySlots.length ? daySlots.length + " créneau" + (daySlots.length > 1 ? "x" : "") : "Repos"}</span>` +
+      (day === today ? `<span class="badge-today">Aujourd'hui</span>` : "");
+
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "add-slot";
+    addBtn.textContent = "+ Ajouter";
+    addBtn.addEventListener("click", () => {
+      slots.push({ id:"l" + (++seq), day, start:"21:00", end:"00:00", game:"" });
+      renderDays();
+      setMsg("Créneau ajouté — pense à enregistrer.", "info");
+    });
+    head.appendChild(addBtn);
+    block.appendChild(head);
+
+    if (!daySlots.length){
+      const empty = document.createElement("p");
+      empty.className = "empty";
+      empty.textContent = "Aucun stream ce jour-là.";
+      block.appendChild(empty);
+    }
+
+    daySlots.forEach(slot => block.appendChild(slotRow(slot)));
+    root.appendChild(block);
+  });
+}
+
+function slotRow(slot){
+  const row = document.createElement("div");
+  row.className = "slot-row";
+
+  const mkField = (cls, labelText, type, value, key) => {
+    const label = document.createElement("label");
+    label.className = "field " + cls;
+    const span = document.createElement("span");
+    span.textContent = labelText;
+    const input = document.createElement("input");
+    input.type = type;
+    input.value = value;
+    if (type === "text"){ input.placeholder = "Ex. Just Chatting"; input.maxLength = 60; }
+    else input.required = true;
+    input.addEventListener("input", () => {
+      slot[key] = input.value;
+      setMsg("Modifications non enregistrées.", "info");
+    });
+    label.append(span, input);
+    return label;
+  };
+
+  row.appendChild(mkField("f-start", "Début", "time", slot.start, "start"));
+  row.appendChild(mkField("f-end",   "Fin",   "time", slot.end,   "end"));
+  row.appendChild(mkField("f-game",  "Jeu / thème", "text", slot.game || "", "game"));
+
+  const del = document.createElement("button");
+  del.type = "button";
+  del.className = "del";
+  del.title = "Supprimer ce créneau";
+  del.setAttribute("aria-label", "Supprimer ce créneau");
+  del.innerHTML = `<svg viewBox="0 0 24 24"><path d="M5 7h14"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg>`;
+  del.addEventListener("click", () => {
+    slots = slots.filter(s => s.id !== slot.id);
+    renderDays();
+    setMsg("Créneau supprimé — pense à enregistrer.", "info");
+  });
+  row.appendChild(del);
+
+  return row;
+}
+
+/* --------------------------------------------------------------
+   Validation
+   -------------------------------------------------------------- */
+function validate(){
+  const errors = [];
+  slots.forEach(s => {
+    if (!/^\d{2}:\d{2}$/.test(s.start) || !/^\d{2}:\d{2}$/.test(s.end)){
+      errors.push(`${DAY_NAMES[s.day]} : horaire incomplet.`);
+    } else if (s.start === s.end){
+      errors.push(`${DAY_NAMES[s.day]} : début et fin identiques (${s.start}).`);
+    }
+  });
+  return errors;
+}
+
+function payload(){
+  return {
+    slots: slots.map(s => ({
+      id: s.id,
+      day: s.day,
+      start: s.start,
+      end: s.end,
+      game: (s.game || "").trim()
+    }))
+  };
+}
+
+/* --------------------------------------------------------------
+   Actions
+   -------------------------------------------------------------- */
+let msgTimer;
+function setMsg(text, kind = "info"){
+  const el = $("msg");
+  el.textContent = text;
+  el.className = "msg " + kind;
+  clearTimeout(msgTimer);
+  if (kind === "ok") msgTimer = setTimeout(() => { el.textContent = ""; }, 4000);
+}
+
+$("save").addEventListener("click", async () => {
+  const errors = validate();
+  if (errors.length){ setMsg(errors[0], "err"); return; }
+
+  const btn = $("save");
+  btn.disabled = true;
+  setMsg("Enregistrement…", "info");
+
+  try {
+    const res = await fetch(API, {
+      method:"PUT",
+      headers:{ "Content-Type":"application/json", "x-admin-password": password },
+      body: JSON.stringify(payload())
+    });
+    if (res.status === 401){ setMsg("Session expirée : recharge la page et reconnecte-toi.", "err"); return; }
+    if (!res.ok){
+      const data = await res.json().catch(() => ({}));
+      setMsg(data.error || `Échec de l'enregistrement (${res.status}).`, "err");
+      return;
+    }
+    setMsg("Planning enregistré ✓", "ok");
+  } catch {
+    setMsg("Serveur injoignable. Utilise « Exporter » pour récupérer le JSON.", "err");
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$("reload").addEventListener("click", () => {
+  loadSlots();
+  setMsg("Modifications annulées.", "info");
+});
+
+$("export").addEventListener("click", () => {
+  $("export-text").value = JSON.stringify(payload(), null, 2);
+  $("export-dialog").showModal();
+  $("export-text").scrollTop = 0;
+});
+
+$("close-dialog").addEventListener("click", () => $("export-dialog").close());
+
+$("copy").addEventListener("click", async () => {
+  const btn = $("copy");
+  try {
+    await navigator.clipboard.writeText($("export-text").value);
+    btn.textContent = "Copié !";
+  } catch {
+    $("export-text").select();
+    btn.textContent = "Sélectionné";
+  }
+  setTimeout(() => { btn.textContent = "Copier"; }, 2000);
+});
+
+$("download").addEventListener("click", () => {
+  const blob = new Blob([$("export-text").value], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "schedule.json";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* Reprise de session (onglet rechargé) */
+const saved = sessionStorage.getItem("admin-pwd");
+if (saved){ password = saved; openEditor(); }
+</script>
+</body>
+</html>

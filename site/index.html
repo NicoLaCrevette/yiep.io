@@ -316,7 +316,7 @@ section{display:flex;flex-direction:column;gap:12px}
   overflow:hidden;
 }
 .day{
-  display:flex;align-items:center;gap:14px;
+  display:flex;align-items:flex-start;gap:14px;
   padding:13px 18px;
   border-top:1px solid var(--border);
   transition:background .2s;
@@ -326,17 +326,21 @@ section{display:flex;flex-direction:column;gap:12px}
   width:78px;flex:none;
   font-weight:600;font-size:14px;
   letter-spacing:-.1px;
+  padding-top:1px;
 }
-.day .slot{
+.day .lines{display:flex;flex-direction:column;gap:7px;flex:1;min-width:0}
+.line{display:flex;align-items:center;gap:10px}
+.line .slot{
   font-size:14px;
   color:var(--text);
   font-variant-numeric:tabular-nums;
+  flex:none;
 }
-.day .game{
+.line .game{
   font-size:12.5px;color:var(--faint);
   margin-left:auto;text-align:right;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  max-width:45%;
+  max-width:52%;
 }
 .day.off .name,.day.off .slot{color:var(--faint);font-weight:500}
 .day.off .slot{font-style:italic}
@@ -347,7 +351,8 @@ section{display:flex;flex-direction:column;gap:12px}
   content:'';
   width:3px;height:20px;border-radius:2px;
   background:var(--accent);
-  margin:0 -8px 0 -8px;
+  margin:1px -8px 0 -8px;
+  flex:none;
 }
 .tag{
   font-size:10.5px;font-weight:700;letter-spacing:.6px;
@@ -389,8 +394,8 @@ footer{
   h1{font-size:25px}
   .day{padding:12px 14px;gap:10px}
   .day .name{width:66px;font-size:13.5px}
-  .day .slot{font-size:13.5px}
-  .day .game{display:none}
+  .line .slot{font-size:13.5px}
+  .line .game{display:none}
   .link{padding:13px 15px}
 }
 @media (prefers-reduced-motion:reduce){
@@ -504,23 +509,27 @@ footer{
 
 <script>
 /* ============================================================================
-   PLANNING — C'EST ICI QUE TU MODIFIES TES HORAIRES
+   PLANNING
    ----------------------------------------------------------------------------
+   Les horaires viennent de schedule.json, modifiable depuis la page admin
+   (admin.html). La liste ci-dessous ne sert que de secours si le fichier
+   n'est pas accessible (page ouverte en double-clic, hors serveur).
+
    day   : 0 = dimanche, 1 = lundi, 2 = mardi, ... 6 = samedi
    start : heure de début, format "HH:MM" (24h, heure de Paris)
-   end   : heure de fin  — peut dépasser minuit ("01:30" = 1h30 du matin)
+   end   : heure de fin — peut dépasser minuit ("01:30" = 1h30 du matin)
    game  : texte libre affiché à droite (facultatif)
-   off   : true  => jour sans stream
+   Un jour sans créneau est affiché comme « Repos ».
    ============================================================================ */
-const SCHEDULE = [
-  { day:1, off:true },
+const FALLBACK_SLOTS = [
   { day:2, start:"21:00", end:"00:00", game:"Just Chatting" },
   { day:3, start:"21:00", end:"00:00", game:"Gaming" },
-  { day:4, off:true },
   { day:5, start:"21:00", end:"00:30", game:"Gaming" },
   { day:6, start:"15:00", end:"19:00", game:"Session longue" },
   { day:0, start:"15:00", end:"19:00", game:"Chill" },
 ];
+
+let SLOTS = FALLBACK_SLOTS;
 
 /* Ordre d'affichage : lundi → dimanche */
 const ORDER = [1,2,3,4,5,6,0];
@@ -549,8 +558,6 @@ const toMin = hhmm => {
 /* Un créneau est « en cours » si maintenant est entre start et end,
    en tenant compte des sessions qui débordent après minuit. */
 function slotState(entry, now){
-  if (entry.off) return { live:false, minutesUntil:null };
-
   const start = toMin(entry.start);
   let end = toMin(entry.end);
   const overnight = end <= start;
@@ -584,41 +591,64 @@ function render(){
   let next = null;
 
   ORDER.forEach(d => {
-    const entry = SCHEDULE.find(e => e.day === d) || { day:d, off:true };
-    const state = slotState(entry, now);
-
-    if (state.live) liveEntry = entry;
-    if (!state.live && state.minutesUntil != null && (!next || state.minutesUntil < next.minutesUntil)){
-      next = { entry, minutesUntil:state.minutesUntil };
-    }
+    const entries = SLOTS
+      .filter(e => e.day === d)
+      .sort((a,b) => toMin(a.start) - toMin(b.start));
 
     const row = document.createElement("div");
-    row.className = "day" + (entry.off ? " off" : "") + (d === now.day ? " today" : "");
+    row.className = "day" + (entries.length ? "" : " off") + (d === now.day ? " today" : "");
 
     const name = document.createElement("span");
     name.className = "name";
     name.textContent = DAY_NAMES[d];
 
-    const slot = document.createElement("span");
-    slot.className = "slot";
-    slot.textContent = entry.off ? "Repos" : `${entry.start} — ${entry.end}`;
+    const lines = document.createElement("span");
+    lines.className = "lines";
 
-    row.append(name, slot);
-
-    if (state.live){
-      const tag = document.createElement("span");
-      tag.className = "tag live";
-      tag.textContent = "En direct";
-      row.appendChild(tag);
+    if (!entries.length){
+      const line = document.createElement("span");
+      line.className = "line";
+      const slot = document.createElement("span");
+      slot.className = "slot";
+      slot.textContent = "Repos";
+      line.appendChild(slot);
+      lines.appendChild(line);
     }
 
-    if (!entry.off && entry.game){
-      const game = document.createElement("span");
-      game.className = "game";
-      game.textContent = entry.game;
-      row.appendChild(game);
-    }
+    entries.forEach(entry => {
+      const state = slotState(entry, now);
 
+      if (state.live) liveEntry = entry;
+      if (!state.live && state.minutesUntil != null && (!next || state.minutesUntil < next.minutesUntil)){
+        next = { entry, minutesUntil:state.minutesUntil };
+      }
+
+      const line = document.createElement("span");
+      line.className = "line";
+
+      const slot = document.createElement("span");
+      slot.className = "slot";
+      slot.textContent = `${entry.start} — ${entry.end}`;
+      line.appendChild(slot);
+
+      if (state.live){
+        const tag = document.createElement("span");
+        tag.className = "tag live";
+        tag.textContent = "En direct";
+        line.appendChild(tag);
+      }
+
+      if (entry.game){
+        const game = document.createElement("span");
+        game.className = "game";
+        game.textContent = entry.game;
+        line.appendChild(game);
+      }
+
+      lines.appendChild(line);
+    });
+
+    row.append(name, lines);
     container.appendChild(row);
   });
 
@@ -650,7 +680,26 @@ function render(){
   }
 }
 
+/* --- chargement des horaires depuis schedule.json (modifiable via admin.html) --- */
+const isValid = s =>
+  s && Number.isInteger(s.day) && s.day >= 0 && s.day <= 6 &&
+  /^\d{2}:\d{2}$/.test(s.start) && /^\d{2}:\d{2}$/.test(s.end);
+
+async function loadSchedule(){
+  try {
+    const res = await fetch("schedule.json", { cache:"no-store" });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    const slots = (data.slots || []).filter(isValid);
+    if (slots.length) SLOTS = slots;
+  } catch {
+    /* fichier introuvable (ouverture en local) : on garde FALLBACK_SLOTS */
+  }
+  render();
+}
+
 render();
+loadSchedule();
 setInterval(render, 60000);
 
 document.getElementById("year").textContent = new Date().getFullYear();

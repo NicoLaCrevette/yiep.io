@@ -1,0 +1,39 @@
+{
+  "slots": [
+    {
+      "id": "s1",
+      "day": 2,
+      "start": "21:00",
+      "end": "00:00",
+      "game": "Just Chatting"
+    },
+    {
+      "id": "s2",
+      "day": 3,
+      "start": "21:00",
+      "end": "00:00",
+      "game": "Gaming"
+    },
+    {
+      "id": "s3",
+      "day": 5,
+      "start": "21:00",
+      "end": "00:30",
+      "game": "Gaming"
+    },
+    {
+      "id": "s4",
+      "day": 6,
+      "start": "15:00",
+      "end": "19:00",
+      "game": "Session longue"
+    },
+    {
+      "id": "s5",
+      "day": 0,
+      "start": "15:00",
+      "end": "19:00",
+      "game": "Chill"
+    }
+  ]
+}
