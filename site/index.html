@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nicooow — Twitch & réseaux</title>
+<meta name="description" content="Twitch, Discord, X et Instagram de Nicooow — planning des lives.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Nicooow">
+<meta property="og:description" content="Twitch, Discord, X et Instagram — planning des lives.">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="twitter:card" content="summary">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%239146FF'/%3E%3Ctext x='50' y='70' font-size='60' font-family='Arial,sans-serif' font-weight='bold' text-anchor='middle' fill='white'%3EN%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --bg:#08080c;
+  --bg-2:#0d0d14;
+  --card:rgba(255,255,255,.035);
+  --card-hover:rgba(255,255,255,.065);
+  --border:rgba(255,255,255,.08);
+  --border-strong:rgba(255,255,255,.14);
+  --text:#f2f2f5;
+  --muted:#9b9baa;
+  --faint:#6a6a7a;
+  --accent:#9146ff;
+  --accent-soft:rgba(145,70,255,.18);
+  --live:#ff4757;
+  --ok:#3ddc84;
+  --radius:16px;
+  --radius-lg:22px;
+  --maxw:520px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  min-height:100vh;
+  min-height:100dvh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:56px 20px 40px;
+  overflow-x:hidden;
+}
+
+/* ============================================================
+   FOND ANIMÉ (deux halos très lents, discrets)
+   ============================================================ */
+.glow{
+  position:fixed;
+  border-radius:50%;
+  filter:blur(90px);
+  pointer-events:none;
+  z-index:0;
+  opacity:.5;
+}
+.glow-1{
+  width:min(520px,90vw);height:min(520px,90vw);
+  top:-18%;left:50%;transform:translateX(-50%);
+  background:radial-gradient(circle,rgba(145,70,255,.55),transparent 70%);
+  animation:float1 18s ease-in-out infinite;
+}
+.glow-2{
+  width:min(420px,80vw);height:min(420px,80vw);
+  bottom:-14%;right:-12%;
+  background:radial-gradient(circle,rgba(60,120,255,.32),transparent 70%);
+  animation:float2 22s ease-in-out infinite;
+}
+@keyframes float1{
+  0%,100%{transform:translateX(-50%) translateY(0)}
+  50%{transform:translateX(-50%) translateY(38px)}
+}
+@keyframes float2{
+  0%,100%{transform:translate(0,0)}
+  50%{transform:translate(-30px,-28px)}
+}
+/* grille très subtile par-dessus le fond */
+body::after{
+  content:'';
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000,transparent 100%);
+  -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000,transparent 100%);
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+main{
+  position:relative;
+  z-index:1;
+  width:100%;
+  max-width:var(--maxw);
+  display:flex;
+  flex-direction:column;
+  gap:28px;
+}
+.reveal{opacity:0;transform:translateY(14px);animation:rise .7s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* ============================================================
+   PROFIL
+   ============================================================ */
+.profile{display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+
+.avatar-wrap{position:relative;width:104px;height:104px}
+.avatar{
+  width:100%;height:100%;
+  border-radius:50%;
+  object-fit:cover;
+  display:block;
+  background:linear-gradient(140deg,#9146ff,#5b2bd6);
+  border:2px solid rgba(255,255,255,.14);
+  box-shadow:0 12px 40px rgba(145,70,255,.32);
+  font-weight:800;font-size:40px;color:#fff;
+}
+/* fallback quand aucune image n'est fournie */
+.avatar-fallback{
+  display:flex;align-items:center;justify-content:center;
+  letter-spacing:-1px;
+  user-select:none;
+}
+.avatar-ring{
+  position:absolute;inset:-7px;
+  border-radius:50%;
+  border:1.5px solid var(--accent);
+  opacity:.35;
+  animation:pulse 3.2s ease-out infinite;
+}
+@keyframes pulse{
+  0%{transform:scale(1);opacity:.4}
+  70%{transform:scale(1.13);opacity:0}
+  100%{opacity:0}
+}
+
+h1{
+  margin:0;
+  font-size:29px;
+  font-weight:800;
+  letter-spacing:-.6px;
+}
+.handle{
+  margin:0;
+  color:var(--muted);
+  font-size:14.5px;
+  font-weight:500;
+}
+.bio{
+  margin:2px 0 0;
+  color:var(--faint);
+  font-size:14px;
+  max-width:340px;
+}
+
+/* badge live / hors ligne */
+.status{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 13px 6px 11px;
+  border-radius:999px;
+  font-size:12.5px;font-weight:600;
+  letter-spacing:.2px;
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--muted);
+  text-decoration:none;
+  transition:background .2s,border-color .2s,transform .2s;
+}
+.status:hover{background:var(--card-hover);border-color:var(--border-strong)}
+.status .dot{width:7px;height:7px;border-radius:50%;background:var(--faint);flex:none}
+.status.is-live{
+  color:#fff;
+  border-color:rgba(255,71,87,.45);
+  background:rgba(255,71,87,.14);
+}
+.status.is-live .dot{
+  background:var(--live);
+  box-shadow:0 0 0 0 rgba(255,71,87,.7);
+  animation:blink 1.6s ease-out infinite;
+}
+@keyframes blink{
+  0%{box-shadow:0 0 0 0 rgba(255,71,87,.6)}
+  70%{box-shadow:0 0 0 8px rgba(255,71,87,0)}
+  100%{box-shadow:0 0 0 0 rgba(255,71,87,0)}
+}
+
+/* ============================================================
+   BOUTONS RÉSEAUX
+   ============================================================ */
+.links{display:flex;flex-direction:column;gap:11px}
+
+.link{
+  position:relative;
+  display:flex;align-items:center;gap:14px;
+  padding:15px 18px;
+  border-radius:var(--radius);
+  background:var(--card);
+  border:1px solid var(--border);
+  color:var(--text);
+  text-decoration:none;
+  overflow:hidden;
+  transition:transform .22s cubic-bezier(.2,.7,.3,1),background .22s,border-color .22s,box-shadow .22s;
+}
+.link::before{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--brand-soft),transparent 60%);
+  opacity:0;
+  transition:opacity .25s;
+}
+.link:hover,.link:focus-visible{
+  transform:translateY(-2px);
+  background:var(--card-hover);
+  border-color:var(--brand-line);
+  box-shadow:0 10px 30px -12px var(--brand-glow);
+  outline:none;
+}
+.link:hover::before,.link:focus-visible::before{opacity:1}
+.link:active{transform:translateY(0)}
+
+.link .icon{
+  position:relative;
+  flex:none;
+  width:40px;height:40px;
+  border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--brand-soft);
+  color:var(--brand);
+  transition:background .25s,color .25s;
+}
+.link:hover .icon{background:var(--brand);color:#fff}
+.link .icon svg{width:20px;height:20px;fill:currentColor}
+
+.link .text{position:relative;display:flex;flex-direction:column;min-width:0}
+.link .label{font-weight:600;font-size:15px;letter-spacing:-.1px}
+.link .sub{
+  font-size:12.5px;color:var(--faint);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.link .arrow{
+  position:relative;
+  margin-left:auto;
+  color:var(--faint);
+  flex:none;
+  transition:transform .25s,color .25s;
+}
+.link:hover .arrow{transform:translateX(3px);color:var(--text)}
+.link .arrow svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* couleurs de marque */
+.link.twitch   {--brand:#9146ff;--brand-soft:rgba(145,70,255,.16);--brand-line:rgba(145,70,255,.42);--brand-glow:rgba(145,70,255,.5)}
+.link.discord  {--brand:#5865f2;--brand-soft:rgba(88,101,242,.16);--brand-line:rgba(88,101,242,.42);--brand-glow:rgba(88,101,242,.5)}
+.link.x        {--brand:#e7e7ea;--brand-soft:rgba(255,255,255,.10);--brand-line:rgba(255,255,255,.30);--brand-glow:rgba(255,255,255,.28)}
+.link.x:hover .icon{color:#0a0a0f}
+.link.instagram{--brand:#e1306c;--brand-soft:rgba(225,48,108,.16);--brand-line:rgba(225,48,108,.42);--brand-glow:rgba(225,48,108,.5)}
+.link.instagram:hover .icon{background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)}
+
+/* mise en avant du bouton principal */
+.link.featured{
+  background:linear-gradient(135deg,rgba(145,70,255,.20),rgba(145,70,255,.06));
+  border-color:rgba(145,70,255,.32);
+}
+
+/* ============================================================
+   PLANNING
+   ============================================================ */
+section{display:flex;flex-direction:column;gap:12px}
+
+.section-head{
+  display:flex;align-items:baseline;justify-content:space-between;
+  gap:12px;padding:0 4px;
+}
+.section-head h2{
+  margin:0;
+  font-size:13px;font-weight:700;
+  letter-spacing:1.4px;text-transform:uppercase;
+  color:var(--muted);
+}
+.section-head .hint{font-size:12px;color:var(--faint)}
+
+.next-up{
+  display:flex;align-items:center;gap:11px;
+  padding:13px 16px;
+  border-radius:var(--radius);
+  background:linear-gradient(135deg,var(--accent-soft),rgba(145,70,255,.04));
+  border:1px solid rgba(145,70,255,.26);
+  font-size:14px;
+}
+.next-up .bolt{flex:none;color:var(--accent);display:flex}
+.next-up .bolt svg{width:17px;height:17px;fill:currentColor}
+.next-up strong{font-weight:650}
+.next-up .when{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap}
+
+.schedule{
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  background:var(--card);
+  overflow:hidden;
+}
+.day{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 18px;
+  border-top:1px solid var(--border);
+  transition:background .2s;
+}
+.day:first-child{border-top:0}
+.day .name{
+  width:78px;flex:none;
+  font-weight:600;font-size:14px;
+  letter-spacing:-.1px;
+}
+.day .slot{
+  font-size:14px;
+  color:var(--text);
+  font-variant-numeric:tabular-nums;
+}
+.day .game{
+  font-size:12.5px;color:var(--faint);
+  margin-left:auto;text-align:right;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:45%;
+}
+.day.off .name,.day.off .slot{color:var(--faint);font-weight:500}
+.day.off .slot{font-style:italic}
+
+.day.today{background:rgba(145,70,255,.09)}
+.day.today .name{color:var(--accent)}
+.day.today::before{
+  content:'';
+  width:3px;height:20px;border-radius:2px;
+  background:var(--accent);
+  margin:0 -8px 0 -8px;
+}
+.tag{
+  font-size:10.5px;font-weight:700;letter-spacing:.6px;
+  text-transform:uppercase;
+  padding:3px 7px;border-radius:6px;
+  background:var(--accent-soft);color:#c9a6ff;
+  flex:none;
+}
+.tag.live{background:rgba(255,71,87,.18);color:#ff8b95}
+
+/* ============================================================
+   PIED DE PAGE
+   ============================================================ */
+footer{
+  position:relative;z-index:1;
+  margin-top:36px;
+  text-align:center;
+  color:var(--faint);
+  font-size:12px;
+  display:flex;flex-direction:column;gap:8px;align-items:center;
+}
+.copy-btn{
+  background:none;border:1px solid var(--border);
+  color:var(--muted);
+  font:inherit;font-size:12px;
+  padding:7px 14px;border-radius:999px;
+  cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;
+  transition:background .2s,color .2s,border-color .2s;
+}
+.copy-btn:hover{background:var(--card-hover);color:var(--text);border-color:var(--border-strong)}
+.copy-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* ============================================================
+   RESPONSIVE / A11Y
+   ============================================================ */
+@media (max-width:420px){
+  body{padding:38px 16px 32px}
+  h1{font-size:25px}
+  .day{padding:12px 14px;gap:10px}
+  .day .name{width:66px;font-size:13.5px}
+  .day .slot{font-size:13.5px}
+  .day .game{display:none}
+  .link{padding:13px 15px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+
+<body>
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
+
+<main>
+
+  <!-- ===================== PROFIL ===================== -->
+  <header class="profile reveal" style="animation-delay:.05s">
+    <div class="avatar-wrap">
+      <div class="avatar-ring"></div>
+      <!-- Pour mettre ta vraie photo : remplace la ligne ci-dessous par
+           <img class="avatar" src="avatar.png" alt="Nicooow"> -->
+      <div class="avatar avatar-fallback" aria-hidden="true">N</div>
+    </div>
+
+    <div>
+      <h1>Nicooow</h1>
+      <p class="handle">@nicooow__</p>
+    </div>
+
+    <p class="bio">Streameur sur Twitch — gaming, chill et bonne humeur.</p>
+
+    <a class="status" id="status" href="https://www.twitch.tv/nicooow__" target="_blank" rel="noopener">
+      <span class="dot"></span><span id="status-text">Hors ligne</span>
+    </a>
+  </header>
+
+  <!-- ===================== LIENS ===================== -->
+  <nav class="links reveal" style="animation-delay:.15s" aria-label="Réseaux sociaux">
+
+    <a class="link twitch featured" href="https://www.twitch.tv/nicooow__" target="_blank" rel="noopener">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+      </span>
+      <span class="text">
+        <span class="label">Twitch</span>
+        <span class="sub">twitch.tv/nicooow__</span>
+      </span>
+      <span class="arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="link discord" href="https://discord.gg/JdzyXEKbt2" target="_blank" rel="noopener">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.369a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .078-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .079.009c.12.099.245.198.372.292a.077.077 0 0 1-.006.127c-.598.35-1.22.645-1.873.891a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.84 19.84 0 0 0 6.002-3.03.077.077 0 0 0 .032-.055c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.331c-1.182 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+      </span>
+      <span class="text">
+        <span class="label">Discord</span>
+        <span class="sub">Rejoins la communauté</span>
+      </span>
+      <span class="arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="link x" href="https://x.com/_Nicooow_" target="_blank" rel="noopener">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+      </span>
+      <span class="text">
+        <span class="label">X (Twitter)</span>
+        <span class="sub">@_Nicooow_</span>
+      </span>
+      <span class="arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+    <a class="link instagram" href="https://www.instagram.com/nicoow01/" target="_blank" rel="noopener">
+      <span class="icon">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+      </span>
+      <span class="text">
+        <span class="label">Instagram</span>
+        <span class="sub">@nicoow01</span>
+      </span>
+      <span class="arrow"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+
+  </nav>
+
+  <!-- ===================== PLANNING ===================== -->
+  <section class="reveal" style="animation-delay:.25s" aria-labelledby="planning-title">
+    <div class="section-head">
+      <h2 id="planning-title">Planning</h2>
+      <span class="hint">Heure de Paris</span>
+    </div>
+
+    <div class="next-up" id="next-up" hidden>
+      <span class="bolt"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12z"/></svg></span>
+      <span id="next-up-text"></span>
+      <span class="when" id="next-up-when"></span>
+    </div>
+
+    <div class="schedule" id="schedule"></div>
+  </section>
+
+  <footer class="reveal" style="animation-delay:.35s">
+    <button class="copy-btn" id="copy-btn" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span id="copy-label">Copier le lien</span>
+    </button>
+    <span>© <span id="year"></span> Nicooow</span>
+  </footer>
+
+</main>
+
+<script>
+/* ============================================================================
+   PLANNING — C'EST ICI QUE TU MODIFIES TES HORAIRES
+   ----------------------------------------------------------------------------
+   day   : 0 = dimanche, 1 = lundi, 2 = mardi, ... 6 = samedi
+   start : heure de début, format "HH:MM" (24h, heure de Paris)
+   end   : heure de fin  — peut dépasser minuit ("01:30" = 1h30 du matin)
+   game  : texte libre affiché à droite (facultatif)
+   off   : true  => jour sans stream
+   ============================================================================ */
+const SCHEDULE = [
+  { day:1, off:true },
+  { day:2, start:"21:00", end:"00:00", game:"Just Chatting" },
+  { day:3, start:"21:00", end:"00:00", game:"Gaming" },
+  { day:4, off:true },
+  { day:5, start:"21:00", end:"00:30", game:"Gaming" },
+  { day:6, start:"15:00", end:"19:00", game:"Session longue" },
+  { day:0, start:"15:00", end:"19:00", game:"Chill" },
+];
+
+/* Ordre d'affichage : lundi → dimanche */
+const ORDER = [1,2,3,4,5,6,0];
+const DAY_NAMES = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+const TZ = "Europe/Paris";
+
+/* --- Heure courante à Paris, quel que soit le fuseau du visiteur --- */
+function parisNow(){
+  const parts = new Intl.DateTimeFormat("fr-FR",{
+    timeZone:TZ, weekday:"short", hour:"2-digit", minute:"2-digit", hour12:false
+  }).formatToParts(new Date());
+  const get = t => parts.find(p => p.type === t).value;
+  const wd = { dim:0, lun:1, mar:2, mer:3, jeu:4, ven:5, sam:6 };
+  const key = get("weekday").toLowerCase().slice(0,3).replace(".","");
+  return {
+    day: wd[key] ?? new Date().getDay(),
+    minutes: parseInt(get("hour"),10) * 60 + parseInt(get("minute"),10)
+  };
+}
+
+const toMin = hhmm => {
+  const [h,m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+};
+
+/* Un créneau est « en cours » si maintenant est entre start et end,
+   en tenant compte des sessions qui débordent après minuit. */
+function slotState(entry, now){
+  if (entry.off) return { live:false, minutesUntil:null };
+
+  const start = toMin(entry.start);
+  let end = toMin(entry.end);
+  const overnight = end <= start;
+  if (overnight) end += 1440;
+
+  // en direct le jour même
+  if (now.day === entry.day && now.minutes >= start && now.minutes < end) return { live:true };
+  // en direct le lendemain matin (créneau qui a débordé)
+  if (overnight && now.day === (entry.day + 1) % 7 && now.minutes + 1440 < end) return { live:true };
+
+  // délai avant le prochain démarrage (en minutes)
+  let delta = ((entry.day - now.day + 7) % 7) * 1440 + start - now.minutes;
+  if (delta < 0) delta += 7 * 1440;
+  return { live:false, minutesUntil:delta };
+}
+
+function humanDelay(min){
+  if (min < 60) return `dans ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `dans ${h} h`;
+  const d = Math.round(h / 24);
+  return d === 1 ? "demain" : `dans ${d} jours`;
+}
+
+function render(){
+  const now = parisNow();
+  const container = document.getElementById("schedule");
+  container.innerHTML = "";
+
+  let liveEntry = null;
+  let next = null;
+
+  ORDER.forEach(d => {
+    const entry = SCHEDULE.find(e => e.day === d) || { day:d, off:true };
+    const state = slotState(entry, now);
+
+    if (state.live) liveEntry = entry;
+    if (!state.live && state.minutesUntil != null && (!next || state.minutesUntil < next.minutesUntil)){
+      next = { entry, minutesUntil:state.minutesUntil };
+    }
+
+    const row = document.createElement("div");
+    row.className = "day" + (entry.off ? " off" : "") + (d === now.day ? " today" : "");
+
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = DAY_NAMES[d];
+
+    const slot = document.createElement("span");
+    slot.className = "slot";
+    slot.textContent = entry.off ? "Repos" : `${entry.start} — ${entry.end}`;
+
+    row.append(name, slot);
+
+    if (state.live){
+      const tag = document.createElement("span");
+      tag.className = "tag live";
+      tag.textContent = "En direct";
+      row.appendChild(tag);
+    }
+
+    if (!entry.off && entry.game){
+      const game = document.createElement("span");
+      game.className = "game";
+      game.textContent = entry.game;
+      row.appendChild(game);
+    }
+
+    container.appendChild(row);
+  });
+
+  /* --- badge de statut --- */
+  const status = document.getElementById("status");
+  const statusText = document.getElementById("status-text");
+  if (liveEntry){
+    status.classList.add("is-live");
+    statusText.textContent = "Stream prévu maintenant";
+  } else {
+    status.classList.remove("is-live");
+    statusText.textContent = "Hors ligne";
+  }
+
+  /* --- bandeau « prochain live » --- */
+  const banner = document.getElementById("next-up");
+  if (liveEntry){
+    banner.hidden = false;
+    document.getElementById("next-up-text").innerHTML =
+      `<strong>Live en cours</strong>${liveEntry.game ? " — " + liveEntry.game : ""}`;
+    document.getElementById("next-up-when").textContent = `jusqu'à ${liveEntry.end}`;
+  } else if (next){
+    banner.hidden = false;
+    document.getElementById("next-up-text").innerHTML =
+      `<strong>Prochain live</strong> — ${DAY_NAMES[next.entry.day]} ${next.entry.start}`;
+    document.getElementById("next-up-when").textContent = humanDelay(next.minutesUntil);
+  } else {
+    banner.hidden = true;
+  }
+}
+
+render();
+setInterval(render, 60000);
+
+document.getElementById("year").textContent = new Date().getFullYear();
+
+/* --- copier le lien de la page --- */
+document.getElementById("copy-btn").addEventListener("click", async () => {
+  const label = document.getElementById("copy-label");
+  try {
+    await navigator.clipboard.writeText(location.href);
+    label.textContent = "Lien copié !";
+  } catch {
+    label.textContent = location.href;
+  }
+  setTimeout(() => { label.textContent = "Copier le lien"; }, 2000);
+});
+</script>
+</body>
+</html>

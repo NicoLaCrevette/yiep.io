@@ -8,6 +8,9 @@ const io = socketIo(server);
 
 app.use(express.static("public"));
 
+// Site vitrine (Twitch + réseaux sociaux) -> http://localhost:3000/links
+app.use("/links", express.static("site"));
+
 let players = {}; // Liste des joueurs connectés
 
 io.on("connection", (socket) => {
