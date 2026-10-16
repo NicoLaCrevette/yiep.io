@@ -1,1 +1,4 @@
 /node_modules
+# Données du site (planning, profil, avatar, clé de session) : propres à chaque serveur
+/data
+.env

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+{{HEAD}}
+<meta name="theme-color" content="#08080c">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/site.css">
+<style nonce="{{NONCE}}">:root{--accent:{{ACCENT}}}</style>
+<script type="application/json" id="initial-data">{{DATA}}</script>
+<script type="module" src="/js/site.js"></script>
+</head>
+<body>
+<div class="backdrop" aria-hidden="true"><div class="glow glow-1"></div><div class="glow glow-2"></div></div>
+
+<main class="page">
+  <header class="profile reveal reveal-1">
+    <div class="avatar" id="avatar"></div>
+    <div>
+      <h1 id="name"></h1>
+      <p class="handle" id="handle" hidden></p>
+    </div>
+    <p class="bio" id="bio" hidden></p>
+    <a class="status" id="status" target="_blank" rel="noopener" hidden>
+      <span class="dot"></span><span id="status-text">Hors ligne</span>
+    </a>
+  </header>
+
+  <nav class="links reveal reveal-2" id="links" aria-label="Réseaux sociaux"></nav>
+
+  <section class="planning reveal reveal-3" aria-labelledby="planning-title">
+    <div class="planning-head">
+      <h2 id="planning-title">Planning</h2>
+      <div class="week-nav">
+        <button class="btn btn-ghost" type="button" id="prev-week" aria-label="Semaine précédente"></button>
+        <span class="label" id="week-label" aria-live="polite"></span>
+        <button class="btn btn-ghost" type="button" id="next-week" aria-label="Semaine suivante"></button>
+      </div>
+    </div>
+
+    <a class="next-up" id="next-up" target="_blank" rel="noopener" hidden></a>
+    <div class="week" id="week"></div>
+    <p class="tz-note">Heures de Paris</p>
+  </section>
+
+  <footer class="footer reveal reveal-4">
+    <button class="btn btn-ghost" type="button" id="copy-link"></button>
+    <span>© <span id="year"></span> <span id="footer-name"></span></span>
+  </footer>
+</main>
+
+<noscript><p class="noscript">Active JavaScript pour afficher la page.</p></noscript>
+</body>
+</html>

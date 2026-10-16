@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin — Planning</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#08080c">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/admin.css">
+<script type="module" src="/js/admin.js"></script>
+</head>
+<body>
+<div class="backdrop" aria-hidden="true"><div class="glow glow-1"></div></div>
+
+<!-- ======================= CONNEXION ======================= -->
+<form class="login card" id="login" hidden>
+  <div>
+    <h1>Admin</h1>
+    <p class="muted">Connecte-toi pour gérer ton planning et ton profil.</p>
+  </div>
+  <label class="field">
+    <span class="field-label">Mot de passe</span>
+    <input type="password" id="password" autocomplete="current-password" required>
+  </label>
+  <button class="btn btn-primary" type="submit" id="login-submit">Se connecter</button>
+  <p class="form-error" id="login-error" role="alert"></p>
+</form>
+
+<!-- ======================= APPLICATION ======================= -->
+<div class="app" id="app" hidden>
+  <header class="topbar">
+    <a class="brand" href="/" target="_blank" rel="noopener">
+      <span class="brand-mark" id="brand-mark"></span>
+      <span class="brand-name" id="brand-name">Admin</span>
+    </a>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" type="button" id="tab-planning" aria-controls="view-planning" aria-selected="true">Planning</button>
+      <button class="tab" role="tab" type="button" id="tab-profile" aria-controls="view-profile" aria-selected="false">Profil & liens</button>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="/" target="_blank" rel="noopener" id="view-site"></a>
+      <button class="btn btn-ghost btn-icon" type="button" id="logout" title="Se déconnecter" aria-label="Se déconnecter"></button>
+    </div>
+  </header>
+
+  <!-- ---------- Planning ---------- -->
+  <main class="view" id="view-planning" role="tabpanel" aria-labelledby="tab-planning">
+    <div class="toolbar">
+      <div class="week-switch">
+        <button class="btn btn-icon" type="button" id="prev-week" aria-label="Semaine précédente"></button>
+        <div class="week-title">
+          <span class="week-kicker" id="week-kicker">Cette semaine</span>
+          <strong id="week-range"></strong>
+        </div>
+        <button class="btn btn-icon" type="button" id="next-week" aria-label="Semaine suivante"></button>
+        <button class="btn btn-ghost" type="button" id="this-week" hidden>Revenir à aujourd'hui</button>
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn" type="button" id="copy-week"></button>
+        <button class="btn btn-primary" type="button" id="open-image"></button>
+      </div>
+    </div>
+
+    <div class="days" id="days"></div>
+  </main>
+
+  <!-- ---------- Profil ---------- -->
+  <main class="view" id="view-profile" role="tabpanel" aria-labelledby="tab-profile" hidden>
+    <form class="profile-form" id="profile-form" novalidate>
+      <section class="card section">
+        <h2>Profil</h2>
+        <div class="avatar-row">
+          <div class="avatar-preview" id="avatar-preview"></div>
+          <div class="avatar-actions">
+            <label class="btn" for="avatar-input">Changer la photo</label>
+            <input type="file" id="avatar-input" accept="image/png,image/jpeg,image/webp,image/gif" class="sr-only">
+            <button class="btn btn-ghost btn-danger" type="button" id="avatar-remove" hidden>Retirer</button>
+            <p class="hint">Recadrée en carré automatiquement.</p>
+          </div>
+        </div>
+
+        <label class="field">
+          <span class="field-label">Nom affiché</span>
+          <input type="text" name="displayName" maxlength="40" required>
+        </label>
+        <label class="field">
+          <span class="field-label">Bio <span class="counter" id="bio-counter"></span></span>
+          <textarea name="bio" rows="2" maxlength="160"></textarea>
+        </label>
+        <div class="field">
+          <span class="field-label">Couleur principale</span>
+          <div class="swatches" id="swatches">
+            <input type="color" name="accent" id="accent-input" aria-label="Couleur personnalisée">
+          </div>
+        </div>
+      </section>
+
+      <section class="card section">
+        <h2>Réseaux</h2>
+        <p class="hint">Laisse un champ vide pour masquer le bouton sur le site.</p>
+        <div class="network-fields" id="network-fields"></div>
+      </section>
+
+      <div class="form-footer">
+        <p class="form-error" id="profile-error" role="alert"></p>
+        <button class="btn btn-primary" type="submit" id="profile-save">Enregistrer le profil</button>
+      </div>
+    </form>
+  </main>
+</div>
+
+<!-- ======================= ÉDITION D'UN LIVE ======================= -->
+<dialog class="dialog" id="event-dialog" aria-labelledby="event-dialog-title">
+  <form id="event-form" method="dialog" novalidate>
+    <header class="dialog-head">
+      <h2 id="event-dialog-title">Nouveau live</h2>
+      <button class="btn btn-ghost btn-icon" type="button" data-close aria-label="Fermer"></button>
+    </header>
+
+    <div class="dialog-body">
+      <label class="field">
+        <span class="field-label">Titre</span>
+        <input type="text" name="title" maxlength="80" placeholder="Ex. Soirée ranked avec la commu" required>
+      </label>
+
+      <div class="grid-3">
+        <label class="field">
+          <span class="field-label">Date</span>
+          <input type="date" name="date" required>
+        </label>
+        <label class="field">
+          <span class="field-label">Début</span>
+          <input type="time" name="start" required>
+        </label>
+        <label class="field">
+          <span class="field-label">Fin</span>
+          <input type="time" name="end" required>
+        </label>
+      </div>
+      <p class="hint" id="overnight-hint" hidden>Le live se termine le lendemain.</p>
+
+      <label class="field">
+        <span class="field-label">Jeu / catégorie <span class="optional">facultatif</span></span>
+        <input type="text" name="game" maxlength="40" placeholder="Ex. Valorant, Just Chatting…">
+      </label>
+
+      <fieldset class="field guests">
+        <legend class="field-label">Invités <span class="optional">facultatif</span></legend>
+        <div class="guest-list" id="guest-list"></div>
+        <button class="btn btn-ghost add-guest" type="button" id="add-guest"></button>
+      </fieldset>
+
+      <p class="form-error" id="event-error" role="alert"></p>
+    </div>
+
+    <footer class="dialog-foot">
+      <div class="dialog-foot-left">
+        <button class="btn btn-ghost btn-danger" type="button" id="event-delete"></button>
+        <button class="btn btn-ghost" type="button" id="event-duplicate"></button>
+      </div>
+      <button class="btn" type="button" data-close>Annuler</button>
+      <button class="btn btn-primary" type="submit" id="event-save">Enregistrer</button>
+    </footer>
+  </form>
+</dialog>
+
+<!-- ======================= IMAGE DU PLANNING ======================= -->
+<dialog class="dialog dialog-wide" id="image-dialog" aria-labelledby="image-dialog-title">
+  <header class="dialog-head">
+    <div>
+      <h2 id="image-dialog-title">Image du planning</h2>
+      <p class="muted" id="image-subtitle"></p>
+    </div>
+    <button class="btn btn-ghost btn-icon" type="button" data-close aria-label="Fermer"></button>
+  </header>
+  <div class="dialog-body">
+    <div class="image-preview" id="image-preview"><div class="spinner" aria-label="Génération…"></div></div>
+    <label class="check">
+      <input type="checkbox" id="hide-empty">
+      <span>Masquer les jours sans live</span>
+    </label>
+  </div>
+  <footer class="dialog-foot">
+    <p class="hint dialog-foot-left">Astuce : « Copier » puis Ctrl+V directement dans Discord.</p>
+    <button class="btn" type="button" id="image-copy"></button>
+    <button class="btn btn-primary" type="button" id="image-download"></button>
+  </footer>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+</html>
